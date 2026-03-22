@@ -1,0 +1,55 @@
+defmodule Aya.Accounts.Role do
+  @moduledoc """
+  Schema for roles.
+
+  Roles can be:
+  - Account-specific (account_id set) — custom roles for an account
+  - Global (account_id nil) — available across all accounts
+
+  System roles (is_system: true) cannot be deleted.
+  """
+
+  @derive {FnTypes.Protocols.Identifiable, type: :role}
+
+  use OmSchema
+
+  @types [:system, :custom]
+  @subtypes [:global, :account_specific]
+  @statuses [:active, :disabled]
+
+  @type t :: %__MODULE__{}
+
+  schema "roles" do
+    field :name, :string, required: true
+    field :slug, :string, required: true, format: :slug, unique: :roles_slug_index
+    field :description, :string
+    field :permissions, :map, default: %{}
+    field :is_system, :boolean, default: false
+
+    type_fields()
+    status_fields(values: @statuses, default: :active)
+    metadata_field()
+    assets_field()
+    audit_fields()
+    timestamps()
+
+    belongs_to :account, Aya.Accounts.Account, on_delete: :cascade
+
+    has_many :user_role_mappings, Aya.Accounts.UserRoleMapping, expect_on_delete: :cascade
+
+    constraints do
+      unique([:account_id, :name], name: :roles_account_id_name_index)
+    end
+  end
+
+  def changeset(role, attrs) do
+    role
+    |> base_changeset(attrs, also_cast: [:account_id])
+    |> foreign_key_constraints([{:account_id, []}])
+    |> unique_constraints([{:slug, []}, {[:account_id, :name], []}])
+  end
+
+  def types, do: @types
+  def subtypes, do: @subtypes
+  def statuses, do: @statuses
+end

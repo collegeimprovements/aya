@@ -1,0 +1,331 @@
+/* ============================================================
+   Aya — Food & Food Science Platform
+   Design System built on Tailwind CSS v4
+   ============================================================
+   All visual tokens are CSS custom properties.
+   Change the color scheme by swapping the token values below.
+   Current scheme: "warm-earth" — appetizing, natural, food-inspired.
+   ============================================================ */
+
+@import "tailwindcss" source(none);
+@source "../css";
+@source "../js";
+@source "../../lib/aya_web";
+
+/* Heroicons plugin — managed by mix.exs */
+@plugin "../vendor/heroicons";
+
+/* ============================================================
+   Theme Tokens — registered as Tailwind utilities via @theme
+   Usage: bg-surface, text-text, text-link, border-border, etc.
+   ============================================================ */
+
+@theme {
+  /* ---- Surfaces ---- */
+  --color-surface: #fafaf8;
+  --color-surface-alt: #f5f3ef;
+  --color-surface-hover: #edeae4;
+  --color-surface-invert: #1c1917;
+
+  /* ---- Text ---- */
+  --color-text: #1c1917;
+  --color-text-secondary: #57534e;
+  --color-text-muted: #a8a29e;
+  --color-text-invert: #fafaf8;
+
+  /* ---- Links (color, NO underline) ---- */
+  --color-link: #c2410c;
+  --color-link-hover: #9a3412;
+
+  /* ---- Brand: Primary (warm orange-red, appetite-stimulating) ---- */
+  --color-primary: #c2410c;
+  --color-primary-hover: #9a3412;
+  --color-primary-soft: #fff7ed;
+  --color-primary-text: #ffffff;
+
+  /* ---- Brand: Secondary (fresh green, natural/organic) ---- */
+  --color-secondary: #166534;
+  --color-secondary-hover: #14532d;
+  --color-secondary-soft: #f0fdf4;
+  --color-secondary-text: #ffffff;
+
+  /* ---- Brand: Accent (golden amber, warmth/harvest) ---- */
+  --color-accent: #b45309;
+  --color-accent-hover: #92400e;
+  --color-accent-soft: #fffbeb;
+  --color-accent-text: #ffffff;
+
+  /* ---- Semantic ---- */
+  --color-info: #0369a1;
+  --color-info-soft: #f0f9ff;
+  --color-info-text: #0c4a6e;
+  --color-success: #15803d;
+  --color-success-soft: #f0fdf4;
+  --color-success-text: #14532d;
+  --color-warning: #a16207;
+  --color-warning-soft: #fefce8;
+  --color-warning-text: #713f12;
+  --color-error: #b91c1c;
+  --color-error-soft: #fef2f2;
+  --color-error-text: #7f1d1d;
+
+  /* ---- Chrome ---- */
+  --color-border: #e7e5e4;
+  --color-border-strong: #d6d3d1;
+  --color-ring: #c2410c;
+
+  /* ---- Shadows ---- */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
+
+  /* Shadow-as-border: layered transparent shadows for cards/buttons (replaces solid borders) */
+  --shadow-border: 0 0 0 1px rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06), 0 2px 4px 0 rgb(0 0 0 / 0.04);
+  --shadow-border-hover: 0 0 0 1px rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08), 0 2px 4px 0 rgb(0 0 0 / 0.06);
+
+  /* ---- Radii ---- */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+
+  /* ---- Transitions ---- */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+}
+
+/* ============================================================
+   Dark Mode — activated via [data-theme="dark"] on <html>
+   ============================================================ */
+@layer base {
+  [data-theme="dark"] {
+    --color-surface: #1c1917;
+    --color-surface-alt: #292524;
+    --color-surface-hover: #3a3633;
+    --color-surface-invert: #fafaf8;
+
+    --color-text: #e7e5e4;
+    --color-text-secondary: #a8a29e;
+    --color-text-muted: #78716c;
+    --color-text-invert: #1c1917;
+
+    --color-link: #fb923c;
+    --color-link-hover: #fdba74;
+
+    --color-primary: #f97316;
+    --color-primary-hover: #fb923c;
+    --color-primary-soft: rgba(249, 115, 22, 0.12);
+    --color-primary-text: #1c1917;
+
+    --color-secondary: #4ade80;
+    --color-secondary-hover: #86efac;
+    --color-secondary-soft: rgba(74, 222, 128, 0.12);
+    --color-secondary-text: #1c1917;
+
+    --color-accent: #fbbf24;
+    --color-accent-hover: #fcd34d;
+    --color-accent-soft: rgba(251, 191, 36, 0.12);
+    --color-accent-text: #1c1917;
+
+    --color-info: #38bdf8;
+    --color-info-soft: rgba(56, 189, 248, 0.12);
+    --color-info-text: #bae6fd;
+    --color-success: #4ade80;
+    --color-success-soft: rgba(74, 222, 128, 0.12);
+    --color-success-text: #bbf7d0;
+    --color-warning: #fbbf24;
+    --color-warning-soft: rgba(251, 191, 36, 0.12);
+    --color-warning-text: #fef08a;
+    --color-error: #f87171;
+    --color-error-soft: rgba(248, 113, 113, 0.12);
+    --color-error-text: #fecaca;
+
+    --color-border: #3a3633;
+    --color-border-strong: #57534e;
+    --color-ring: #f97316;
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+
+    /* Dark mode: single white ring for shadow-border */
+    --shadow-border: 0 0 0 1px rgb(255 255 255 / 0.08);
+    --shadow-border-hover: 0 0 0 1px rgb(255 255 255 / 0.13);
+  }
+}
+
+/* ============================================================
+   Base Styles
+   ============================================================ */
+@layer base {
+  html {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Fix mobile viewport height (address bar issue) */
+    min-height: 100dvh;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    min-height: 100dvh;
+  }
+
+  /* Typography polish */
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+  }
+
+  p, li, dd, blockquote {
+    text-wrap: pretty;
+  }
+
+  /* Links: color differentiation, NO underline */
+  a {
+    color: var(--color-link);
+    transition: color var(--duration-fast) ease;
+  }
+  a:hover {
+    color: var(--color-link-hover);
+  }
+
+  /* Image polish: subtle outline for depth */
+  img {
+    outline: 1px solid rgba(0, 0, 0, 0.1);
+    outline-offset: -1px;
+  }
+  [data-theme="dark"] img {
+    outline-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Text selection matches brand */
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-primary-text);
+  }
+
+  /* Focus visible for accessibility */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* ============================================================
+   Reduced Motion — respect user preference
+   ============================================================ */
+@layer base {
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ============================================================
+   Scrollbar — minimal, matches design system
+   ============================================================ */
+@layer base {
+  /* Webkit (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-strong);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-text-muted);
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
+  }
+}
+
+/* ============================================================
+   LiveView Variants — loading states
+   ============================================================ */
+@custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
+@custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
+@custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
+
+/* Dark mode variant using data attribute */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* Make LiveView wrapper divs transparent for layout */
+[data-phx-session], [data-phx-teleported-src] { display: contents }
+
+/* ============================================================
+   Skeleton animation
+   ============================================================ */
+@layer utilities {
+  .skeleton-pulse {
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+    background: linear-gradient(
+      90deg,
+      var(--color-surface-alt) 25%,
+      var(--color-surface-hover) 50%,
+      var(--color-surface-alt) 75%
+    );
+    background-size: 200% 100%;
+  }
+
+  @keyframes skeleton-pulse {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+}
+
+/* ============================================================
+   Flash enter/exit animations
+   ============================================================ */
+@layer utilities {
+  .flash-enter {
+    animation: flash-enter var(--duration-slow) cubic-bezier(0.2, 0, 0, 1) forwards;
+  }
+
+  .flash-exit {
+    animation: flash-exit var(--duration-normal) ease-in forwards;
+  }
+
+  @keyframes flash-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-12px);
+      filter: blur(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+
+  @keyframes flash-exit {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-12px);
+      filter: blur(4px);
+    }
+  }
+}

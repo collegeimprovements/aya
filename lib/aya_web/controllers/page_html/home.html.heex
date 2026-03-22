@@ -1,0 +1,91 @@
+<div class="min-h-[calc(100dvh-3.5rem)] flex flex-col">
+  <%!-- Hero Section --%>
+  <section class="flex-1 flex items-center py-16 sm:py-24">
+    <div class="w-full max-w-4xl mx-auto">
+      <div class="max-w-2xl">
+        <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-text leading-tight">
+          Everything about <span class="text-primary">food</span>, <br />in one place.
+        </h1>
+        <p class="mt-6 text-lg text-text-secondary leading-relaxed max-w-xl">
+          Latest news, recipes, research papers, ingredients, market trends, and reports
+          — all curated for food enthusiasts and professionals.
+        </p>
+        <div class="mt-10 flex flex-wrap gap-4">
+          <.button variant="primary" size="lg" navigate={~p"/"}>
+            <.icon name="hero-newspaper" class="size-5" /> Browse News
+          </.button>
+          <.button variant="ghost" size="lg" navigate={~p"/"}>
+            <.icon name="hero-book-open" class="size-5" /> Explore Recipes
+          </.button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%!-- Features Grid --%>
+  <section class="py-16 border-t border-border">
+    <div class="max-w-4xl mx-auto">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="group rounded-lg p-6 shadow-border hover:shadow-border-hover transition-[box-shadow] duration-150 ease-out">
+          <div class="size-10 rounded-lg bg-primary-soft flex items-center justify-center mb-4">
+            <.icon name="hero-newspaper" class="size-5 text-primary" />
+          </div>
+          <h3 class="font-semibold text-text">Food News</h3>
+          <p class="mt-2 text-sm text-text-secondary leading-relaxed">
+            Stay updated with the latest food industry news, trends, and discoveries from around the world.
+          </p>
+        </div>
+
+        <div class="group rounded-lg p-6 shadow-border hover:shadow-border-hover transition-[box-shadow] duration-150 ease-out">
+          <div class="size-10 rounded-lg bg-secondary-soft flex items-center justify-center mb-4">
+            <.icon name="hero-book-open" class="size-5 text-secondary" />
+          </div>
+          <h3 class="font-semibold text-text">Recipes</h3>
+          <p class="mt-2 text-sm text-text-secondary leading-relaxed">
+            Discover and save recipes with detailed ingredients, steps, and nutritional information.
+          </p>
+        </div>
+
+        <div class="group rounded-lg p-6 shadow-border hover:shadow-border-hover transition-[box-shadow] duration-150 ease-out">
+          <div class="size-10 rounded-lg bg-accent-soft flex items-center justify-center mb-4">
+            <.icon name="hero-beaker" class="size-5 text-accent" />
+          </div>
+          <h3 class="font-semibold text-text">Research</h3>
+          <p class="mt-2 text-sm text-text-secondary leading-relaxed">
+            Access food science research papers, studies, and academic publications.
+          </p>
+        </div>
+
+        <div class="group rounded-lg p-6 shadow-border hover:shadow-border-hover transition-[box-shadow] duration-150 ease-out">
+          <div class="size-10 rounded-lg bg-info-soft flex items-center justify-center mb-4">
+            <.icon name="hero-sparkles" class="size-5 text-info" />
+          </div>
+          <h3 class="font-semibold text-text">Ingredients</h3>
+          <p class="mt-2 text-sm text-text-secondary leading-relaxed">
+            Explore a comprehensive database of ingredients, properties, and substitutions.
+          </p>
+        </div>
+
+        <div class="group rounded-lg p-6 shadow-border hover:shadow-border-hover transition-[box-shadow] duration-150 ease-out">
+          <div class="size-10 rounded-lg bg-warning-soft flex items-center justify-center mb-4">
+            <.icon name="hero-chart-bar" class="size-5 text-warning" />
+          </div>
+          <h3 class="font-semibold text-text">Market Trends</h3>
+          <p class="mt-2 text-sm text-text-secondary leading-relaxed">
+            Track market trends, price movements, and seasonal patterns in the food industry.
+          </p>
+        </div>
+
+        <div class="group rounded-lg p-6 shadow-border hover:shadow-border-hover transition-[box-shadow] duration-150 ease-out">
+          <div class="size-10 rounded-lg bg-success-soft flex items-center justify-center mb-4">
+            <.icon name="hero-document-chart-bar" class="size-5 text-success" />
+          </div>
+          <h3 class="font-semibold text-text">Reports</h3>
+          <p class="mt-2 text-sm text-text-secondary leading-relaxed">
+            Access detailed reports on food industry analysis, market data, and insights.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
