@@ -46,7 +46,7 @@ defmodule AyaWeb.UI.InlineAlert do
       <button
         :if={@dismissible}
         type="button"
-        class="shrink-0 opacity-50 hover:opacity-80 cursor-pointer transition-opacity"
+        class="shrink-0 rounded-md p-0.5 opacity-50 hover:opacity-80 cursor-pointer transition-opacity focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         aria-label="Dismiss"
         phx-click={@id && Phoenix.LiveView.JS.hide(to: "##{@id}")}
       >

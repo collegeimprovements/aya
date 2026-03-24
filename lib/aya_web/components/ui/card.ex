@@ -38,7 +38,7 @@ defmodule AyaWeb.UI.Card do
     ~H"""
     <div
       class={[
-        "rounded-lg bg-surface overflow-hidden",
+        "group rounded-lg bg-surface overflow-hidden",
         "shadow-border transition-[box-shadow] duration-150 ease-out",
         "hover:shadow-border-hover",
         @href && "cursor-pointer",
@@ -69,7 +69,10 @@ defmodule AyaWeb.UI.Card do
             <% nil -> %>
               {render_slot(title)}
             <% href -> %>
-              <a href={href} class="text-text hover:text-primary transition-[color] duration-150">
+              <a
+                href={href}
+                class="text-text hover:text-primary transition-[color] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring rounded-sm"
+              >
                 {render_slot(title)}
               </a>
           <% end %>

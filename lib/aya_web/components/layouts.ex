@@ -96,7 +96,7 @@ defmodule AyaWeb.Layouts do
       {render_slot(@inner_block)}
     </main>
 
-    <.flash_group flash={@flash} />
+    <.toast_container flash={@flash} />
     """
   end
 

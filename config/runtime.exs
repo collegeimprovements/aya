@@ -1,119 +1,136 @@
 import Config
+alias FnTypes.Config, as: Cfg
 
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration
-# and secrets from environment variables or elsewhere. Do not define
-# any compile-time configuration in here, as it won't be applied.
-# The block below contains prod specific runtime configuration.
+# and secrets from environment variables or elsewhere.
 
-# ## Using releases
-#
-# If you use `mix release`, you need to explicitly enable the server
-# by passing the PHX_SERVER=true when you start it:
-#
-#     PHX_SERVER=true bin/aya start
-#
-# Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
-# script that automatically sets the env var above.
-if System.get_env("PHX_SERVER") do
-  config :aya, AyaWeb.Endpoint, server: true
+# ── Server ────────────────────────────────────────────────────────
+# Guarded to non-test: test uses fixed port 4002 / server: false
+# from config.exs and must not be overridden by env vars.
+
+if config_env() != :test do
+  if Cfg.boolean("PHX_SERVER", false) do
+    config :aya, AyaWeb.Endpoint, server: true
+  end
+
+  config :aya, AyaWeb.Endpoint, http: [port: Cfg.integer("PORT", 4000)]
 end
 
-config :aya, AyaWeb.Endpoint, http: [port: String.to_integer(System.get_env("PORT", "4000"))]
+config :aya, auto_migrate: Cfg.boolean("AUTO_MIGRATE", false)
+
+# ══════════════════════════════════════════════════════════════════
+# Dev
+# ══════════════════════════════════════════════════════════════════
+
+if config_env() == :dev do
+  config :aya, Aya.Repo,
+    username: "postgres",
+    password: "postgres",
+    hostname: "localhost",
+    database: "aya_dev",
+    stacktrace: true,
+    show_sensitive_data_on_connection_error: true,
+    pool_size: 10
+
+  config :aya, Aya.Cache, stats: true
+
+  config :om_scheduler,
+    enabled: true,
+    store: :memory,
+    queues: [default: 5],
+    plugins: [OmScheduler.Plugins.Cron]
+end
+
+# ══════════════════════════════════════════════════════════════════
+# Test
+# ══════════════════════════════════════════════════════════════════
+
+if config_env() == :test do
+  config :aya, Aya.Repo,
+    username: "postgres",
+    password: "postgres",
+    hostname: "localhost",
+    database: "aya_test#{Cfg.string("MIX_TEST_PARTITION")}",
+    pool: Ecto.Adapters.SQL.Sandbox,
+    pool_size: System.schedulers_online() * 2
+
+  config :aya, Aya.Mailer, adapter: Swoosh.Adapters.Test
+  config :aya, Aya.Cache, stats: false
+  config :om_scheduler, enabled: false
+  config :logger, level: :warning
+end
+
+# ══════════════════════════════════════════════════════════════════
+# Prod
+# ══════════════════════════════════════════════════════════════════
 
 if config_env() == :prod do
   database_url =
-    System.get_env("DATABASE_URL") ||
-      raise """
-      environment variable DATABASE_URL is missing.
-      For example: ecto://USER:PASS@HOST/DATABASE
-      """
-
-  maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+    Cfg.string!("DATABASE_URL",
+      message: "DATABASE_URL is missing. Example: ecto://USER:PASS@HOST/DATABASE"
+    )
 
   config :aya, Aya.Repo,
-    # ssl: true,
     url: database_url,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
-    # For machines with several cores, consider starting multiple pools of `pool_size`
-    # pool_count: 4,
-    socket_options: maybe_ipv6
+    ssl: Cfg.boolean("ECTO_SSL", false),
+    pool_size: Cfg.integer("POOL_SIZE", 10),
+    socket_options: [:inet]
 
-  # The secret key base is used to sign/encrypt cookies and other secrets.
-  # A default value is used in config/dev.exs and config/test.exs but you
-  # want to use a different value for prod and you most likely don't want
-  # to check this value into version control, so we use an environment
-  # variable instead.
   secret_key_base =
-    System.get_env("SECRET_KEY_BASE") ||
-      raise """
-      environment variable SECRET_KEY_BASE is missing.
-      You can generate one by calling: mix phx.gen.secret
-      """
+    Cfg.string!("SECRET_KEY_BASE",
+      message: "SECRET_KEY_BASE is missing. Generate with: mix phx.gen.secret"
+    )
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  host = Cfg.string("PHX_HOST", "localhost")
+  port = Cfg.integer("PORT", 4000)
+  https? = Cfg.boolean("PHX_HTTPS", false)
+  scheme = if https?, do: "https", else: "http"
+  url_port = if https?, do: 443, else: port
 
-  config :aya, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
+  config :aya, :dns_cluster_query, Cfg.string("DNS_CLUSTER_QUERY")
 
   config :aya, AyaWeb.Endpoint,
-    url: [host: host, port: 443, scheme: "https"],
-    http: [
-      # Enable IPv6 and bind on all interfaces.
-      # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
-      # See the documentation on https://hexdocs.pm/bandit/Bandit.html#t:options/0
-      # for details about using IPv6 vs IPv4 and loopback vs public addresses.
-      ip: {0, 0, 0, 0, 0, 0, 0, 0}
-    ],
+    url: [host: host, port: url_port, scheme: scheme],
+    http: [ip: {0, 0, 0, 0}, port: port],
     secret_key_base: secret_key_base
 
-  # ## SSL Support
-  #
-  # To get SSL working, you will need to add the `https` key
-  # to your endpoint configuration:
-  #
-  #     config :aya, AyaWeb.Endpoint,
-  #       https: [
-  #         ...,
-  #         port: 443,
-  #         cipher_suite: :strong,
-  #         keyfile: System.get_env("SOME_APP_SSL_KEY_PATH"),
-  #         certfile: System.get_env("SOME_APP_SSL_CERT_PATH")
-  #       ]
-  #
-  # The `cipher_suite` is set to `:strong` to support only the
-  # latest and more secure SSL ciphers. This means old browsers
-  # and clients may not be supported. You can set it to
-  # `:compatible` for wider support.
-  #
-  # `:keyfile` and `:certfile` expect an absolute path to the key
-  # and cert in disk or a relative path inside priv, for example
-  # "priv/ssl/server.key". For all supported SSL configuration
-  # options, see https://hexdocs.pm/plug/Plug.SSL.html#configure/1
-  #
-  # We also recommend setting `force_ssl` in your config/prod.exs,
-  # ensuring no data is ever sent via http, always redirecting to https:
-  #
-  #     config :aya, AyaWeb.Endpoint,
-  #       force_ssl: [hsts: true]
-  #
-  # Check `Plug.SSL` for all available options in `force_ssl`.
+  if https? do
+    ssl_key = Cfg.string!("SSL_KEY_PATH", message: "SSL_KEY_PATH required when PHX_HTTPS=true")
+    ssl_cert = Cfg.string!("SSL_CERT_PATH", message: "SSL_CERT_PATH required when PHX_HTTPS=true")
 
-  # ## Configuring the mailer
-  #
-  # In production you need to configure the mailer to use a different adapter.
-  # Here is an example configuration for Mailgun:
-  #
-  #     config :aya, Aya.Mailer,
-  #       adapter: Swoosh.Adapters.Mailgun,
-  #       api_key: System.get_env("MAILGUN_API_KEY"),
-  #       domain: System.get_env("MAILGUN_DOMAIN")
-  #
-  # Most non-SMTP adapters require an API client. Swoosh supports Req, Hackney,
-  # and Finch out-of-the-box. This configuration is typically done at
-  # compile-time in your config/prod.exs:
-  #
-  #     config :swoosh, :api_client, Swoosh.ApiClient.Req
-  #
-  # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+    config :aya, AyaWeb.Endpoint,
+      https: [
+        ip: {0, 0, 0, 0},
+        port: Cfg.integer("PHX_HTTPS_PORT", 443),
+        cipher_suite: :strong,
+        keyfile: ssl_key,
+        certfile: ssl_cert
+      ]
+  end
+
+  # ── OmCache ──────────────────────────────────────────────────
+  config :aya, Aya.Cache, OmCache.Config.build(default_adapter: :local)
+
+  # ── OmScheduler ──────────────────────────────────────────────
+  scheduler_store =
+    Cfg.atom("SCHEDULER_STORE", :memory)
+
+  config :om_scheduler,
+    enabled: Cfg.boolean("SCHEDULER_ENABLED", false),
+    store: scheduler_store,
+    repo: Aya.Repo,
+    queues: [default: Cfg.integer("SCHEDULER_QUEUE_SIZE", 10)],
+    plugins: [
+      OmScheduler.Plugins.Cron,
+      {OmScheduler.Plugins.Pruner, max_age: {7, :days}}
+    ]
+
+  # ── OmApiClient ──────────────────────────────────────────────
+  config :om_api_client,
+    timeout: Cfg.integer("API_CLIENT_TIMEOUT", 30_000),
+    receive_timeout: Cfg.integer("API_CLIENT_RECEIVE_TIMEOUT", 60_000)
+
+  config :logger, level: :info
 end

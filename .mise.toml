@@ -1,0 +1,66 @@
+# ── Tools ──────────────────────────────────────────────────────────
+[tools]
+erlang = "28.4.1"
+elixir = "1.20.0-rc.3-otp-28"
+
+# ── Environment Variables ─────────────────────────────────────────
+#
+# All env vars for dev, test, and prod are defined here.
+# For local overrides, create .mise.local.toml (gitignored).
+# For production, override via docker-compose.yml or your deploy tool.
+
+[env]
+# ── Application ───────────────────────────────────────────────────
+# NOTE: Do NOT set MIX_ENV here — it prevents `mix test` from
+# automatically switching to :test env. Dev is already the default.
+PORT = "4000"
+PHX_HOST = "localhost"
+PHX_SERVER = "true"
+
+# ── Database ──────────────────────────────────────────────────────
+# Dev/test use defaults from config.exs and runtime.exs.
+# In prod, DATABASE_URL is required.
+# DATABASE_URL = "ecto://postgres:postgres@localhost/aya_prod"
+POSTGRES_USER = "postgres"
+POSTGRES_PASSWORD = "postgres"
+POSTGRES_DB = "aya_dev"
+POSTGRES_PORT = "5432"
+POOL_SIZE = "10"
+
+# ── Database SSL ──────────────────────────────────────────────────
+# Set to "true" for managed databases (RDS, Supabase, Neon, etc.)
+ECTO_SSL = "false"
+
+# ── HTTP / HTTPS ──────────────────────────────────────────────────
+# PHX_HTTPS: enable HTTPS termination at the app level
+# If behind a reverse proxy (nginx, caddy, LB), leave disabled.
+PHX_HTTPS = "false"
+# SSL_KEY_PATH = "/path/to/key.pem"
+# SSL_CERT_PATH = "/path/to/cert.pem"
+# PHX_HTTPS_PORT = "443"
+
+# ── SSL redirect ──────────────────────────────────────────────────
+# Compile-time: force HTTP → HTTPS redirect (HSTS).
+# Set to "false" if SSL is terminated at the load balancer.
+FORCE_SSL = "true"
+
+# ── Auth ──────────────────────────────────────────────────────────
+# Generate with: mix phx.gen.secret
+# SECRET_KEY_BASE = ""
+
+# ── Migrations ────────────────────────────────────────────────────
+# Auto-run pending migrations on app boot (single-node deploys only)
+AUTO_MIGRATE = "false"
+
+# ── Clustering ────────────────────────────────────────────────────
+# DNS_CLUSTER_QUERY = ""
+
+# ── Docker build ──────────────────────────────────────────────────
+ELIXIR_VERSION = "1.20.0-rc.3"
+OTP_VERSION = "28.4.1"
+DEBIAN_VERSION = "trixie-20260316"
+
+# ── Proxy (uncomment for corporate/restricted networks) ──────────
+# HTTP_PROXY = "http://proxy.corp:8080"
+# HTTPS_PROXY = "http://proxy.corp:8080"
+# NO_PROXY = "localhost,127.0.0.1,.internal"

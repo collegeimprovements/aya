@@ -88,12 +88,46 @@ defmodule AyaWeb do
       import AyaWeb.CoreComponents
 
       # UI component library
-      import AyaWeb.UI.Skeleton
+      import AyaWeb.UI.Accordion
+      import AyaWeb.UI.Avatar
       import AyaWeb.UI.Badge
+      import AyaWeb.UI.Banner
+      import AyaWeb.UI.Breadcrumb
       import AyaWeb.UI.Card
-      import AyaWeb.UI.InlineAlert
-      import AyaWeb.UI.EmptyState
+      import AyaWeb.UI.Checkbox
+      import AyaWeb.UI.CommandPalette
       import AyaWeb.UI.CopyButton
+      import AyaWeb.UI.DatePicker
+      import AyaWeb.UI.Divider
+      import AyaWeb.UI.Dropdown
+      import AyaWeb.UI.EmptyState
+      import AyaWeb.UI.EngagementStats
+      import AyaWeb.UI.ExpandableCards
+      import AyaWeb.UI.FilePicker
+      import AyaWeb.UI.FamilyDialog
+      import AyaWeb.UI.HoverCard
+      import AyaWeb.UI.Image
+      import AyaWeb.UI.InlineAlert
+      import AyaWeb.UI.Kbd
+      import AyaWeb.UI.Link
+      import AyaWeb.UI.ListDetail
+      import AyaWeb.UI.Loading
+      import AyaWeb.UI.MorphDialog
+      import AyaWeb.UI.MultiStep
+      import AyaWeb.UI.Overlay
+      import AyaWeb.UI.Pagination
+      import AyaWeb.UI.Progress
+      import AyaWeb.UI.Radio
+      import AyaWeb.UI.ShareSheet
+      import AyaWeb.UI.Skeleton
+      import AyaWeb.UI.SplitPane
+      import AyaWeb.UI.Spinner
+      import AyaWeb.UI.StatCard
+      import AyaWeb.UI.Steps
+      import AyaWeb.UI.Tabs
+      import AyaWeb.UI.Toast
+      import AyaWeb.UI.Toggle
+      import AyaWeb.UI.Tooltip
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS

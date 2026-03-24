@@ -313,6 +313,47 @@ Links use **color differentiation**, NOT underlines:
 - Hover: `hover:text-link-hover` with subtle transition
 - **Never** use `underline` on links unless inside prose/article content
 
+#### Extended `<.link>` (CoreComponents override)
+
+Aya overrides `Phoenix.Component.link/1` in `CoreComponents` via `import Phoenix.Component, except: [link: 1]`. The replacement is a **strict superset** — all Phoenix attrs work, plus:
+
+**Resource hints** (browser-native prefetching):
+
+| Attr | Trigger | Mechanism | Best for |
+|---|---|---|---|
+| `prefetch` | Hover/touch | JS injects `<link rel="prefetch">` on mouseenter | Nav links, sidebar, cards |
+| `preload` | Render | Server renders `<link rel="prefetch">` | Wizard next step, onboarding |
+| `prerender` | Render | `<script type="speculationrules">` | Chrome-only, high-confidence |
+
+**Convenience attrs:**
+
+| Attr | What it does | Renders |
+|---|---|---|
+| `external` | Opens in new tab safely | `target="_blank" rel="noopener noreferrer"` |
+| `active` | Marks link as current page | `aria-current="page"` + `active_class` |
+| `active_class` | Custom active styling | Default: `"text-text font-medium"` |
+| `disabled` | Prevents navigation, dims | `aria-disabled="true"`, `pointer-events-none` |
+| `loading` | Shows spinner during nav | Inline SVG spinner visible during `phx-click-loading` |
+
+**Rules:**
+- Use `prefetch` on all navigation links (zero cost until hover)
+- Use `external` for any link leaving the app (never manually write `target="_blank"`)
+- Use `active` for nav/sidebar links (never manually compare paths in class attrs)
+- Use `disabled` for permission-gated links (never hide links — disable them)
+- Avoid `prerender` for LiveView pages (too expensive — full mount + WebSocket)
+
+**Pattern:**
+```elixir
+# Sidebar nav
+<.link navigate={~p"/recipes"} prefetch active={@page == :recipes}>Recipes</.link>
+
+# External
+<.link href="https://github.com" external>GitHub</.link>
+
+# Permission-gated
+<.link navigate={~p"/admin"} disabled={!@is_admin} prefetch>Admin</.link>
+```
+
 ### Spacing & Typography
 
 Use Tailwind's default spacing scale. For consistent section spacing:

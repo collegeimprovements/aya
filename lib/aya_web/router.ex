@@ -18,12 +18,17 @@ defmodule AyaWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    live "/showcase", ShowcaseLive
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", AyaWeb do
-  #   pipe_through :api
-  # end
+  # ── API ───────────────────────────────────────────────────────
+  scope "/api", AyaWeb do
+    pipe_through :api
+
+    get "/health", HealthController, :index
+    get "/health/ready", HealthController, :ready
+    get "/health/live", HealthController, :live
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:aya, :dev_routes) do

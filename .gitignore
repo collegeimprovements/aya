@@ -35,3 +35,8 @@ aya-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Vendored shared libs for Docker builds.
+/libs/
+
+# Local mise overrides.
+.mise.local.toml

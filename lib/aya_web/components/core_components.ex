@@ -16,9 +16,156 @@ defmodule AyaWeb.CoreComponents do
   - `show/2`, `hide/2` — JS transition helpers
   """
   use Phoenix.Component
+  import Phoenix.Component, except: [link: 1]
   use Gettext, backend: AyaWeb.Gettext
 
   alias Phoenix.LiveView.JS
+
+  # ── Link (extended) ──────────────────────────────────────────────
+
+  @doc """
+  Extended `<.link>` — drop-in replacement for `Phoenix.Component.link/1`.
+
+  Supports all standard Phoenix link attrs plus:
+
+  ## Resource hints
+  - `prefetch` — prefetch page on hover/touch
+  - `preload` — prefetch immediately on render
+  - `prerender` — prerender via Speculation Rules API (Chrome 109+)
+
+  ## Convenience
+  - `external` — auto-adds `target="_blank" rel="noopener noreferrer"`
+  - `active` — adds active class when `active_path` matches current path
+  - `active_path` — path to match for active state (defaults to `navigate`/`patch`/`href`)
+  - `active_class` — class applied when active (default: `"text-text font-medium"`)
+  - `disabled` — prevents click, dims the link
+  - `loading` — shows a spinner on click until navigation completes
+
+  ## Examples
+
+      <.link navigate={~p"/recipes"} prefetch>Recipes</.link>
+      <.link href="https://github.com" external>GitHub</.link>
+      <.link navigate={~p"/recipes"} active={@live_action == :index}>Recipes</.link>
+      <.link navigate={~p"/settings"} disabled={!@can_access}>Settings</.link>
+  """
+  attr :navigate, :string, default: nil
+  attr :patch, :string, default: nil
+  attr :href, :any, default: nil
+  attr :replace, :boolean, default: false
+  attr :method, :string, default: nil
+  attr :csrf_token, :any, default: true
+  attr :prefetch, :boolean, default: false, doc: "prefetch on hover/touch"
+  attr :preload, :boolean, default: false, doc: "prefetch immediately on render"
+  attr :prerender, :boolean, default: false, doc: "prerender via Speculation Rules API"
+  attr :external, :boolean, default: false, doc: "open in new tab with noopener"
+  attr :active, :boolean, default: false, doc: "whether this link is currently active"
+  attr :active_class, :string, default: "text-text font-medium", doc: "class when active"
+  attr :disabled, :boolean, default: false, doc: "prevent navigation, dim the link"
+  attr :loading, :boolean, default: false, doc: "show spinner on click"
+  attr :rest, :global, include: ~w(download hreflang referrerpolicy rel target type class id)
+  slot :inner_block, required: true
+
+  def link(assigns) do
+    url = assigns.navigate || assigns.patch || assigns.href
+
+    # Build computed attrs
+    extra_class =
+      [
+        assigns.active && assigns.active_class,
+        assigns.disabled && "opacity-50 pointer-events-none cursor-not-allowed"
+      ]
+      |> Enum.filter(& &1)
+      |> Enum.join(" ")
+
+    # External: override target + rel
+    {target, rel} =
+      if assigns.external do
+        {assigns.rest[:target] || "_blank", "noopener noreferrer"}
+      else
+        {assigns.rest[:target], assigns.rest[:rel]}
+      end
+
+    # Prefetch needs a hook + id
+    use_hook = assigns.prefetch && url
+
+    id =
+      if use_hook do
+        assigns.rest[:id] || "pl-#{System.unique_integer([:positive])}"
+      else
+        assigns.rest[:id]
+      end
+
+    # Disabled: strip navigation attrs
+    {nav, pat, hr} =
+      if assigns.disabled do
+        {nil, nil, nil}
+      else
+        {assigns.navigate, assigns.patch, assigns.href}
+      end
+
+    assigns =
+      assign(assigns,
+        _url: url,
+        _nav: nav,
+        _pat: pat,
+        _hr: hr,
+        _extra_class: extra_class,
+        _target: target,
+        _rel: rel,
+        _id: id,
+        _use_hook: use_hook
+      )
+
+    ~H"""
+    <%!-- Resource hints --%>
+    <link :if={@preload && @_url} rel="prefetch" href={@_url} />
+    <script :if={@prerender && @_url} type="speculationrules">
+      {"prerender": [{"urls": ["{@_url}"]}]}
+    </script>
+
+    <Phoenix.Component.link
+      navigate={@_nav}
+      patch={@_pat}
+      href={@_hr}
+      replace={@replace}
+      method={@method}
+      csrf_token={@csrf_token}
+      target={@_target}
+      rel={@_rel}
+      id={@_id}
+      data-prefetch={if @_use_hook, do: @_url}
+      phx-hook={if @_use_hook, do: ".PrefetchLink"}
+      aria-disabled={if @disabled, do: "true"}
+      aria-current={if @active, do: "page"}
+      class={@_extra_class}
+      {@rest}
+    >
+      {render_slot(@inner_block)}
+      <svg :if={@loading} class="link-spinner" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+      </svg>
+    </Phoenix.Component.link>
+
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".PrefetchLink">
+      export default {
+        mounted() {
+          const url = this.el.dataset.prefetch
+          if (!url) return
+          let done = false
+          const inject = () => {
+            if (done) return; done = true
+            const l = document.createElement("link")
+            l.rel = "prefetch"; l.href = url; l.as = "document"
+            document.head.appendChild(l)
+          }
+          this.el.addEventListener("mouseenter", inject, { once: true })
+          this.el.addEventListener("touchstart", inject, { once: true, passive: true })
+        }
+      }
+    </script>
+    """
+  end
 
   # ── Flash ──────────────────────────────────────────────────────
 
@@ -508,7 +655,7 @@ defmodule AyaWeb.CoreComponents do
       to: selector,
       time: 300,
       transition:
-        {"transition-all ease-out duration-300",
+        {"transition-[opacity,transform] ease-out duration-300",
          "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
          "opacity-100 translate-y-0 sm:scale-100"}
     )
@@ -519,7 +666,8 @@ defmodule AyaWeb.CoreComponents do
       to: selector,
       time: 200,
       transition:
-        {"transition-all ease-in duration-200", "opacity-100 translate-y-0 sm:scale-100",
+        {"transition-[opacity,transform] ease-in duration-200",
+         "opacity-100 translate-y-0 sm:scale-100",
          "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
     )
   end

@@ -1,0 +1,16 @@
+_build/
+deps/
+cover/
+doc/
+tmp/
+.git/
+.gitignore
+.dockerignore
+.mise.local.toml
+test/
+*.ez
+erl_crash.dump
+AGENTS.md
+README.md
+Justfile
+docker-compose.yml

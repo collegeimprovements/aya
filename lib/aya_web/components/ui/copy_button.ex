@@ -30,7 +30,8 @@ defmodule AyaWeb.UI.CopyButton do
           "inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md",
           "border border-border text-text-secondary",
           "hover:bg-surface-hover hover:text-text",
-          "transition-colors cursor-pointer"
+          "transition-colors cursor-pointer",
+          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         ]}
         data-role="copy-trigger"
       >
