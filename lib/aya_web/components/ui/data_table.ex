@@ -104,12 +104,25 @@ defmodule AyaWeb.UI.DataTable do
                 if(@compact, do: "px-3 py-2", else: "px-4 py-3")
               ]}
             >
-              <input
-                type="checkbox"
-                checked={@all_selected}
-                phx-click="select_all"
-                class="rounded border-border cursor-pointer accent-primary"
-              />
+              <label class="inline-flex cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={@all_selected}
+                  phx-click="select_all"
+                  class="cb__input"
+                />
+                <span class="cb__box">
+                  <svg class="cb__check" viewBox="0 0 12 12" fill="none">
+                    <path
+                      d="M2.5 6.5L5 9L9.5 3.5"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+              </label>
             </th>
             <%!-- Column headers --%>
             <th
@@ -166,13 +179,26 @@ defmodule AyaWeb.UI.DataTable do
                 if(@compact, do: "px-3 py-2", else: "px-4 py-3")
               ]}
             >
-              <input
-                type="checkbox"
-                checked={row_selected?(assigns, row)}
-                phx-click="select_row"
-                phx-value-id={row_id_value(assigns, row)}
-                class="rounded border-border cursor-pointer accent-primary"
-              />
+              <label class="inline-flex cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={row_selected?(assigns, row)}
+                  phx-click="select_row"
+                  phx-value-id={row_id_value(assigns, row)}
+                  class="cb__input"
+                />
+                <span class="cb__box">
+                  <svg class="cb__check" viewBox="0 0 12 12" fill="none">
+                    <path
+                      d="M2.5 6.5L5 9L9.5 3.5"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+              </label>
             </td>
             <%!-- Data cells --%>
             <td

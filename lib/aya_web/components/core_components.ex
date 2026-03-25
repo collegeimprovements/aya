@@ -660,22 +660,30 @@ defmodule AyaWeb.CoreComponents do
     <div class="mb-3">
       <label for={@id}>
         <span :if={@label} class="block text-sm font-medium text-text mb-1">{@label}</span>
-        <select
-          id={@id}
-          name={@name}
-          class={[
-            @class ||
-              "w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text",
-            "focus:border-ring focus:ring-2 focus:ring-ring/20 focus:outline-none",
-            "transition-colors",
-            @errors != [] && (@error_class || "border-error focus:border-error focus:ring-error/20")
-          ]}
-          multiple={@multiple}
-          {@rest}
-        >
-          <option :if={@prompt} value="">{@prompt}</option>
-          {Phoenix.HTML.Form.options_for_select(@options, @value)}
-        </select>
+        <div class="relative">
+          <select
+            id={@id}
+            name={@name}
+            class={[
+              @class ||
+                "w-full rounded-md border border-border bg-surface pl-3 pr-8 py-2 text-sm text-text",
+              "appearance-none",
+              "focus:border-ring focus:ring-2 focus:ring-ring/20 focus:outline-none",
+              "transition-colors cursor-pointer",
+              @errors != [] && (@error_class || "border-error focus:border-error focus:ring-error/20")
+            ]}
+            multiple={@multiple}
+            {@rest}
+          >
+            <option :if={@prompt} value="">{@prompt}</option>
+            {Phoenix.HTML.Form.options_for_select(@options, @value)}
+          </select>
+          <.icon
+            :if={!@multiple}
+            name="hero-chevron-down-mini"
+            class="size-4 text-text-muted absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+          />
+        </div>
       </label>
       <.field_error :for={msg <- @errors}>{msg}</.field_error>
     </div>
