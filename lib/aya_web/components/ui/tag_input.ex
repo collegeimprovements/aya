@@ -131,12 +131,9 @@ defmodule AyaWeb.UI.TagInput do
           type="text"
           class="flex-1 min-w-[80px] bg-transparent border-none outline-none text-sm text-text placeholder:text-text-muted p-0"
           placeholder={if(@tags == [], do: @placeholder, else: "")}
-          value={@search}
-          phx-keyup="typing"
-          phx-key="*"
-          phx-target={@myself}
           phx-focus="input_focus"
           phx-blur="input_blur"
+          phx-target={@myself}
           autocomplete="off"
           spellcheck="false"
           disabled={@disabled || @at_max}
@@ -176,6 +173,27 @@ defmodule AyaWeb.UI.TagInput do
             // Click container to focus input
             container.addEventListener("click", () => input.focus())
 
+            // Track input value and send key events with value
+            input.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                const val = input.value.trim()
+                if (val) {
+                  this.pushEventTo(this.el, "add_tag", { value: val })
+                  input.value = ""
+                  // Also update search for suggestions
+                  this.pushEventTo(this.el, "search", { value: "" })
+                }
+              } else if (e.key === "Backspace" && input.value === "") {
+                this.pushEventTo(this.el, "remove_last", {})
+              }
+            })
+
+            // Track typing for suggestions
+            input.addEventListener("input", () => {
+              this.pushEventTo(this.el, "search", { value: input.value })
+            })
+
             // Paste: split by comma and add as tags
             input.addEventListener("paste", (e) => {
               const text = (e.clipboardData || window.clipboardData).getData("text")
@@ -184,6 +202,7 @@ defmodule AyaWeb.UI.TagInput do
                 const tags = text.split(",").map(t => t.trim()).filter(Boolean)
                 if (tags.length) {
                   this.pushEventTo(this.el, "paste_tags", { tags })
+                  input.value = ""
                 }
               }
             })
@@ -195,11 +214,11 @@ defmodule AyaWeb.UI.TagInput do
   end
 
   @impl true
-  def handle_event("typing", %{"key" => "Enter", "value" => value}, socket) do
+  def handle_event("add_tag", %{"value" => value}, socket) do
     add_tag(socket, value)
   end
 
-  def handle_event("typing", %{"key" => "Backspace", "value" => ""}, socket) do
+  def handle_event("remove_last", _, socket) do
     if socket.assigns.tags != [] do
       tags = Enum.drop(socket.assigns.tags, -1)
       {:noreply, socket |> assign(tags: tags, search: "") |> notify_change(tags)}
@@ -208,7 +227,7 @@ defmodule AyaWeb.UI.TagInput do
     end
   end
 
-  def handle_event("typing", %{"value" => value}, socket) do
+  def handle_event("search", %{"value" => value}, socket) do
     {:noreply, assign(socket, search: value)}
   end
 

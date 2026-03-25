@@ -1122,18 +1122,20 @@ html:has(dialog.overlay[open]) { overflow: hidden; }
 .hc__panel {
   position: fixed;
   z-index: 100;
+  /* Anchor positioning: below trigger, centered */
+  inset: auto;
   top: anchor(bottom);
   left: anchor(center);
-  transform: translateX(-50%) scale(0.96);
+  translate: -50% 0;
   margin-top: 8px;
-  position-try-fallbacks: flip-block;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg), 0 0 0 1px rgb(0 0 0 / 0.04);
   pointer-events: none;
   opacity: 0;
-  transition: opacity 200ms ease-out, transform 200ms cubic-bezier(0.22, 1.1, 0.36, 1);
+  scale: 0.96;
+  transition: opacity 200ms ease-out, scale 200ms cubic-bezier(0.22, 1.1, 0.36, 1);
 }
 
 .hc__panel[data-placement="top"] {
@@ -1147,7 +1149,7 @@ html:has(dialog.overlay[open]) { overflow: hidden; }
   top: anchor(center);
   left: auto;
   right: anchor(left);
-  transform: translateY(-50%) scale(0.96);
+  translate: 0 -50%;
   margin-top: 0;
   margin-right: 8px;
 }
@@ -1155,7 +1157,7 @@ html:has(dialog.overlay[open]) { overflow: hidden; }
 .hc__panel[data-placement="right"] {
   top: anchor(center);
   left: anchor(right);
-  transform: translateY(-50%) scale(0.96);
+  translate: 0 -50%;
   margin-top: 0;
   margin-left: 8px;
 }
@@ -1166,19 +1168,18 @@ html:has(dialog.overlay[open]) { overflow: hidden; }
 .hc__panel--visible {
   pointer-events: auto;
   opacity: 1;
-  transform: translateX(-50%);
-}
-
-.hc__panel--visible[data-placement="left"],
-.hc__panel--visible[data-placement="right"] {
-  transform: translateY(-50%);
+  scale: 1;
 }
 
 /* Directional entry origins */
-.hc__panel--top    { transform-origin: bottom center; }
-.hc__panel--bottom { transform-origin: top center; }
-.hc__panel--left   { transform-origin: center right; }
-.hc__panel--right  { transform-origin: center left; }
+.hc__panel--top,
+.hc__panel[data-placement="top"]    { transform-origin: bottom center; }
+.hc__panel--bottom,
+.hc__panel[data-placement="bottom"] { transform-origin: top center; }
+.hc__panel--left,
+.hc__panel[data-placement="left"]   { transform-origin: center right; }
+.hc__panel--right,
+.hc__panel[data-placement="right"]  { transform-origin: center left; }
 
 .hc__body {
   padding: 0.875rem 1rem;
@@ -1196,27 +1197,38 @@ html:has(dialog.overlay[open]) { overflow: hidden; }
   height: 10px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  transform: rotate(45deg);
   pointer-events: none;
 }
 
-.hc__panel--bottom .hc__arrow {
+.hc__panel--bottom .hc__arrow,
+.hc__panel[data-placement="bottom"] .hc__arrow {
   top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
   border-right: none;
   border-bottom: none;
 }
-.hc__panel--top .hc__arrow {
+.hc__panel--top .hc__arrow,
+.hc__panel[data-placement="top"] .hc__arrow {
   bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
   border-left: none;
   border-top: none;
 }
-.hc__panel--left .hc__arrow {
+.hc__panel--left .hc__arrow,
+.hc__panel[data-placement="left"] .hc__arrow {
   right: -6px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
   border-left: none;
   border-bottom: none;
 }
-.hc__panel--right .hc__arrow {
+.hc__panel--right .hc__arrow,
+.hc__panel[data-placement="right"] .hc__arrow {
   left: -6px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
   border-right: none;
   border-top: none;
 }

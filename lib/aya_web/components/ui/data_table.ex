@@ -104,25 +104,7 @@ defmodule AyaWeb.UI.DataTable do
                 if(@compact, do: "px-3 py-2", else: "px-4 py-3")
               ]}
             >
-              <label class="inline-flex cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={@all_selected}
-                  phx-click="select_all"
-                  class="cb__input"
-                />
-                <span class="cb__box">
-                  <svg class="cb__check" viewBox="0 0 12 12" fill="none">
-                    <path
-                      d="M2.5 6.5L5 9L9.5 3.5"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </span>
-              </label>
+              <.dt_checkbox checked={@all_selected} phx-click="select_all" />
             </th>
             <%!-- Column headers --%>
             <th
@@ -179,26 +161,11 @@ defmodule AyaWeb.UI.DataTable do
                 if(@compact, do: "px-3 py-2", else: "px-4 py-3")
               ]}
             >
-              <label class="inline-flex cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={row_selected?(assigns, row)}
-                  phx-click="select_row"
-                  phx-value-id={row_id_value(assigns, row)}
-                  class="cb__input"
-                />
-                <span class="cb__box">
-                  <svg class="cb__check" viewBox="0 0 12 12" fill="none">
-                    <path
-                      d="M2.5 6.5L5 9L9.5 3.5"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </span>
-              </label>
+              <.dt_checkbox
+                checked={row_selected?(assigns, row)}
+                phx-click="select_row"
+                phx-value-id={row_id_value(assigns, row)}
+              />
             </td>
             <%!-- Data cells --%>
             <td
@@ -242,6 +209,30 @@ defmodule AyaWeb.UI.DataTable do
         <% end %>
       </div>
     </div>
+    """
+  end
+
+  # ── Styled checkbox (reuses cb__ CSS from Checkbox component) ──
+
+  attr :checked, :boolean, default: false
+  attr :rest, :global
+
+  defp dt_checkbox(assigns) do
+    ~H"""
+    <label class="inline-flex cursor-pointer">
+      <input type="checkbox" checked={@checked} class="cb__input" {@rest} />
+      <span class="cb__box">
+        <svg class="cb__check" viewBox="0 0 12 12" fill="none">
+          <path
+            d="M2.5 6.5L5 9L9.5 3.5"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+    </label>
     """
   end
 
