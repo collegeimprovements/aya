@@ -46,7 +46,6 @@ defmodule AyaWeb.UI.Slider do
   """
 
   use Phoenix.Component
-  import AyaWeb.CoreComponents, only: [icon: 1]
 
   attr :id, :string, required: true
   attr :field, Phoenix.HTML.FormField, default: nil

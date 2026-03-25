@@ -35,6 +35,7 @@ defmodule AyaWeb.UI.Timeline do
   import AyaWeb.CoreComponents, only: [icon: 1]
 
   attr :variant, :string, default: "default", values: ~w(default compact card)
+  attr :direction, :string, default: "vertical", values: ~w(vertical horizontal)
   attr :class, :any, default: nil
 
   slot :item, required: true do
@@ -44,6 +45,63 @@ defmodule AyaWeb.UI.Timeline do
     attr :icon, :string
     attr :icon_color, :string, values: ~w(default primary success warning error info)
     attr :status, :string, values: ~w(complete current upcoming)
+  end
+
+  def timeline(%{direction: "horizontal"} = assigns) do
+    ~H"""
+    <div class={["overflow-x-auto", @class]}>
+      <div class="flex items-start min-w-max">
+        <div
+          :for={{item, index} <- Enum.with_index(@item)}
+          class="flex flex-col items-center text-center"
+          style="min-width: 140px; max-width: 180px;"
+        >
+          <%!-- Icon row with connector line --%>
+          <div class="flex items-center w-full">
+            <%!-- Left connector --%>
+            <div class={[
+              "flex-1 h-px",
+              if(index > 0,
+                do: connector_color(Enum.at(@item, index - 1)[:status]),
+                else: "bg-transparent"
+              )
+            ]} />
+            <%!-- Icon --%>
+            <.timeline_icon
+              icon={item[:icon]}
+              icon_color={item[:icon_color] || "default"}
+              variant={@variant}
+            />
+            <%!-- Right connector --%>
+            <div class={[
+              "flex-1 h-px",
+              if(index < length(@item) - 1,
+                do: connector_color(item[:status]),
+                else: "bg-transparent"
+              )
+            ]} />
+          </div>
+
+          <%!-- Content below --%>
+          <div class="mt-2 px-2">
+            <p class={["font-medium", title_size(@variant)]}>{item.title}</p>
+            <span
+              :if={item[:timestamp]}
+              class={["text-text-muted block mt-0.5", timestamp_size(@variant)]}
+            >
+              {item[:timestamp]}
+            </span>
+            <p
+              :if={item[:description]}
+              class={["text-text-secondary mt-0.5", description_size(@variant)]}
+            >
+              {item[:description]}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
   end
 
   def timeline(assigns) do

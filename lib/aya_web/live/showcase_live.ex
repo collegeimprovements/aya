@@ -1023,6 +1023,57 @@ defmodule AyaWeb.ShowcaseLive do
                   </.timeline>
                 </div>
               </div>
+              <%!-- Horizontal --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Horizontal</p>
+                <.timeline direction="horizontal">
+                  <:item
+                    title="Order placed"
+                    timestamp="Mar 20"
+                    icon="hero-shopping-cart"
+                    icon_color="success"
+                    status="complete"
+                  />
+                  <:item
+                    title="Processing"
+                    timestamp="Mar 21"
+                    icon="hero-cog-6-tooth"
+                    icon_color="success"
+                    status="complete"
+                  />
+                  <:item
+                    title="Shipped"
+                    timestamp="Mar 22"
+                    icon="hero-truck"
+                    icon_color="primary"
+                    status="current"
+                  />
+                  <:item
+                    title="Out for delivery"
+                    timestamp="Mar 24"
+                    icon="hero-map-pin"
+                    status="upcoming"
+                  />
+                  <:item
+                    title="Delivered"
+                    timestamp="Mar 25"
+                    icon="hero-check-circle"
+                    status="upcoming"
+                  />
+                </.timeline>
+              </div>
+              <%!-- Horizontal compact --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Horizontal compact</p>
+                <.timeline direction="horizontal" variant="compact">
+                  <:item title="Mix" icon_color="success" status="complete" />
+                  <:item title="Bulk ferment" icon_color="success" status="complete" />
+                  <:item title="Shape" icon_color="primary" status="current" />
+                  <:item title="Proof" status="upcoming" />
+                  <:item title="Bake" status="upcoming" />
+                  <:item title="Cool" status="upcoming" />
+                </.timeline>
+              </div>
               <%!-- Compact --%>
               <div>
                 <p class="text-xs text-text-muted mb-2">Compact</p>
