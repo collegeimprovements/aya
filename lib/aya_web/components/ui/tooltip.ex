@@ -1,6 +1,6 @@
 defmodule AyaWeb.UI.Tooltip do
   @moduledoc """
-  Tooltip component. Positioned via JS for cross-browser support.
+  Tooltip component. Positioned via CSS Anchor Positioning.
 
   ## Examples
 
@@ -30,6 +30,7 @@ defmodule AyaWeb.UI.Tooltip do
       id={"#{@id}-trigger"}
       data-tooltip-id={@id}
       data-tooltip-placement={@placement}
+      style={"anchor-name: --tt-#{@id}"}
     >
       {render_slot(@inner_block)}
     </span>
@@ -37,12 +38,13 @@ defmodule AyaWeb.UI.Tooltip do
       id={@id}
       role="tooltip"
       class={[
-        "fixed z-[9999] px-2.5 py-1.5 text-xs leading-tight rounded-md max-w-[240px]",
+        "tooltip-panel px-2.5 py-1.5 text-xs leading-tight rounded-md max-w-[240px]",
         "bg-surface-invert text-text-invert shadow-md",
         "pointer-events-none opacity-0 transition-opacity duration-fast",
         @class
       ]}
-      style="top:0;left:0"
+      style={"position-anchor: --tt-#{@id}"}
+      data-placement={@placement}
       hidden
     >
       {@text}
@@ -53,52 +55,16 @@ defmodule AyaWeb.UI.Tooltip do
         mounted() {
           const trigger = this.el
           const tipId = trigger.dataset.tooltipId
-          const placement = trigger.dataset.tooltipPlacement || "top"
           const tip = document.getElementById(tipId)
           if (!tip) return
 
-          const GAP = 8
           let showTimeout, hideTimeout
-
-          const position = () => {
-            const tr = trigger.getBoundingClientRect()
-            const tip_rect = tip.getBoundingClientRect()
-            const tw = tip_rect.width, th = tip_rect.height
-            let top, left
-
-            switch (placement) {
-              case "bottom":
-                top = tr.bottom + GAP
-                left = tr.left + (tr.width - tw) / 2
-                break
-              case "left":
-                top = tr.top + (tr.height - th) / 2
-                left = tr.left - tw - GAP
-                break
-              case "right":
-                top = tr.top + (tr.height - th) / 2
-                left = tr.right + GAP
-                break
-              default: // top
-                top = tr.top - th - GAP
-                left = tr.left + (tr.width - tw) / 2
-            }
-
-            // Clamp to viewport
-            left = Math.max(8, Math.min(left, window.innerWidth - tw - 8))
-            top = Math.max(8, Math.min(top, window.innerHeight - th - 8))
-
-            tip.style.top = top + "px"
-            tip.style.left = left + "px"
-          }
 
           const show = () => {
             clearTimeout(hideTimeout)
             showTimeout = setTimeout(() => {
               tip.hidden = false
-              // Measure after visible
               requestAnimationFrame(() => {
-                position()
                 tip.style.opacity = "1"
               })
             }, 200)

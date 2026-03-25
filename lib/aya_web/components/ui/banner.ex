@@ -11,7 +11,7 @@ defmodule AyaWeb.UI.Banner do
       <.banner variant={:warning} dismissible={false}>
         Scheduled maintenance on Sunday 2am-4am UTC.
         <:action>
-          <.styled_link href="/status" variant="subtle">Details</.styled_link>
+          <.link href="/status" variant="subtle">Details</.link>
         </:action>
       </.banner>
   """

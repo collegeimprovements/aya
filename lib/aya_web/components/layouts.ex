@@ -31,7 +31,8 @@ defmodule AyaWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
-  slot :inner_block, required: true
+  attr :inner_content, :any, default: nil, doc: "content from LiveView layout system"
+  slot :inner_block
 
   def app(assigns) do
     assigns = assign(assigns, :nav_items, @nav_items)
@@ -93,10 +94,8 @@ defmodule AyaWeb.Layouts do
     </header>
 
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {render_slot(@inner_block)}
+      {@inner_content || render_slot(@inner_block)}
     </main>
-
-    <.toast_container flash={@flash} />
     """
   end
 

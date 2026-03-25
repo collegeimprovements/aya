@@ -14,6 +14,7 @@ defmodule AyaWeb.ShowcaseLive do
           "rich_colors" => "false",
           "ingredient_id" => "",
           "tags" => [],
+          "ingredients" => [],
           "terms" => "false",
           "newsletter" => "true",
           "vegan" => "false",
@@ -21,7 +22,9 @@ defmodule AyaWeb.ShowcaseLive do
           "dairy_free" => "true",
           "difficulty" => "intermediate",
           "meal_type" => "dinner"
-        }, as: :demo)
+        },
+        as: :demo
+      )
 
     socket =
       socket
@@ -35,7 +38,10 @@ defmodule AyaWeb.ShowcaseLive do
         grouped_options: sample_grouped_options(),
         tag_options: sample_tag_options(),
         rich_colors: false,
-        tab_mode: :url
+        tab_mode: :url,
+        dt_sort_by: nil,
+        dt_sort_dir: "asc",
+        dt_selected: []
       )
       |> assign(:uploaded_files, [])
       |> allow_upload(:files,
@@ -44,6 +50,11 @@ defmodule AyaWeb.ShowcaseLive do
         max_file_size: 10_000_000,
         auto_upload: true,
         progress: &handle_upload_progress/3
+      )
+      |> allow_upload(:image,
+        accept: ~w(.jpg .jpeg .png .gif .webp),
+        max_entries: 1,
+        max_file_size: 10_000_000
       )
 
     {:ok, socket}
@@ -116,22 +127,28 @@ defmodule AyaWeb.ShowcaseLive do
               <div>
                 <p class="text-xs text-text-muted mb-2">Icon-only</p>
                 <div class="flex flex-wrap items-center gap-3">
-                  <.button variant="soft" size="sm" class="!px-2">
+                  <.button variant="soft" size="sm" class="!px-2" aria-label="Favorite">
                     <.icon name="hero-heart" class="size-4" />
                   </.button>
-                  <.button variant="ghost" size="sm" class="!px-2">
+                  <.button variant="ghost" size="sm" class="!px-2" aria-label="Edit">
                     <.icon name="hero-pencil-square" class="size-4" />
                   </.button>
-                  <.button variant="ghost" size="sm" class="!px-2">
+                  <.button variant="ghost" size="sm" class="!px-2" aria-label="Delete">
                     <.icon name="hero-trash" class="size-4 text-error" />
                   </.button>
-                  <.button variant="primary" size="sm" class="!px-2">
+                  <.button variant="primary" size="sm" class="!px-2" aria-label="Add">
                     <.icon name="hero-plus" class="size-4" />
                   </.button>
-                  <button class="size-8 rounded-full bg-surface-alt flex items-center justify-center text-text-muted hover:text-text hover:bg-surface-hover transition-colors cursor-pointer">
+                  <button
+                    class="size-8 rounded-full bg-surface-alt flex items-center justify-center text-text-muted hover:text-text hover:bg-surface-hover transition-colors cursor-pointer"
+                    aria-label="More options"
+                  >
                     <.icon name="hero-ellipsis-horizontal" class="size-4" />
                   </button>
-                  <button class="size-10 rounded-full bg-primary flex items-center justify-center text-primary-text hover:bg-primary-hover transition-colors cursor-pointer active:scale-95">
+                  <button
+                    class="size-10 rounded-full bg-primary flex items-center justify-center text-primary-text hover:bg-primary-hover transition-colors cursor-pointer active:scale-95"
+                    aria-label="Add item"
+                  >
                     <.icon name="hero-plus" class="size-5" />
                   </button>
                 </div>
@@ -226,10 +243,103 @@ defmodule AyaWeb.ShowcaseLive do
           <section id="link-section" class="space-y-4 scroll-mt-8">
             <h3 class="text-lg font-semibold text-text">Link</h3>
             <.divider />
-            <div class="flex items-center gap-6">
-              <.styled_link href="#">Default Link</.styled_link>
-              <.styled_link href="#" variant="muted">Muted Link</.styled_link>
-              <.styled_link href="#" variant="subtle">Subtle Link</.styled_link>
+            <div class="space-y-5">
+              <%!-- Variants --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Variants</p>
+                <div class="flex flex-wrap items-center gap-6">
+                  <.link href="#" variant="default">Default</.link>
+                  <.link href="#" variant="muted">Muted</.link>
+                  <.link href="#" variant="subtle">Subtle</.link>
+                  <.link href="#" variant="underline">Underline</.link>
+                  <.link href="#" variant="underline-hover">Underline hover</.link>
+                  <.link href="#" variant="plain">Plain</.link>
+                </div>
+              </div>
+              <%!-- In prose context --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Inline with text</p>
+                <p class="text-sm text-text-secondary max-w-md">
+                  This recipe was inspired by
+                  <.link href="#" variant="underline">traditional techniques</.link>
+                  and modern <.link href="#" variant="underline">molecular gastronomy</.link>
+                  approaches documented in the <.link href="#" variant="underline">archives</.link>.
+                </p>
+              </div>
+              <%!-- External link --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">External (opens in new tab)</p>
+                <div class="flex flex-wrap items-center gap-6">
+                  <.link href="https://example.com" external variant="default">
+                    example.com
+                    <.icon name="hero-arrow-top-right-on-square-mini" class="size-3.5 inline ml-0.5" />
+                  </.link>
+                  <.link href="https://example.com" external variant="muted">
+                    External muted
+                    <.icon name="hero-arrow-top-right-on-square-mini" class="size-3.5 inline ml-0.5" />
+                  </.link>
+                </div>
+              </div>
+              <%!-- Speculation Rules: prefetch / preload / prerender --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Speculation Rules</p>
+                <div class="flex flex-wrap items-center gap-6">
+                  <.link navigate={~p"/"} prefetch variant="default" id="demo-prefetch">
+                    Prefetch on hover
+                  </.link>
+                  <.link navigate={~p"/"} preload variant="default" id="demo-preload">
+                    Preload immediately
+                  </.link>
+                  <.link navigate={~p"/"} prerender variant="default" id="demo-prerender">
+                    Prerender (Chrome)
+                  </.link>
+                </div>
+                <p class="text-xs text-text-muted mt-1.5">
+                  Open DevTools → Network → filter Doc to see requests.
+                  Uses Speculation Rules API with &lt;link rel="prefetch"&gt; fallback.
+                </p>
+              </div>
+              <%!-- Active & disabled --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Active & disabled</p>
+                <div class="flex flex-wrap items-center gap-6">
+                  <.link href="#" variant="default" active>Active link</.link>
+                  <.link
+                    href="#"
+                    variant="default"
+                    active
+                    active_class="text-text font-semibold border-b border-link"
+                  >
+                    Custom active
+                  </.link>
+                  <.link href="#" variant="default" disabled>Disabled</.link>
+                  <.link href="#" variant="muted" disabled>Disabled muted</.link>
+                </div>
+              </div>
+              <%!-- Loading --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Loading (click to see spinner)</p>
+                <div class="flex flex-wrap items-center gap-6">
+                  <.link navigate={~p"/"} loading variant="default" id="demo-loading">
+                    Save & continue
+                  </.link>
+                </div>
+              </div>
+              <%!-- With icons --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">With icons</p>
+                <div class="flex flex-wrap items-center gap-6">
+                  <.link href="#" variant="default">
+                    <.icon name="hero-arrow-left-mini" class="size-4 inline" /> Back to recipes
+                  </.link>
+                  <.link href="#" variant="subtle">
+                    View all <.icon name="hero-arrow-right-mini" class="size-4 inline" />
+                  </.link>
+                  <.link href="#" variant="muted">
+                    <.icon name="hero-document-text-mini" class="size-4 inline" /> Documentation
+                  </.link>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -510,6 +620,72 @@ defmodule AyaWeb.ShowcaseLive do
             </.table>
           </section>
 
+          <%!-- ━━━ Data Table ━━━ --%>
+          <section id="data-table-section" class="space-y-4 scroll-mt-8">
+            <h3 class="text-lg font-semibold text-text">Data Table</h3>
+            <.divider />
+            <div class="space-y-8">
+              <%!-- 1. Basic with sorting --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Sortable columns</p>
+                <.data_table
+                  id="dt-sortable"
+                  rows={sample_table_rows()}
+                  sortable
+                  sort_by={@dt_sort_by}
+                  sort_dir={@dt_sort_dir}
+                >
+                  <:col :let={row} label="Name" field="name">{row.name}</:col>
+                  <:col :let={row} label="Category" field="category">{row.category}</:col>
+                  <:col :let={row} label="Calories" field="calories" align="right">
+                    {row.calories}
+                  </:col>
+                </.data_table>
+              </div>
+
+              <%!-- 2. With row selection --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Row selection</p>
+                <.data_table
+                  id="dt-selectable"
+                  rows={sample_table_rows()}
+                  selectable
+                  selected={@dt_selected}
+                >
+                  <:col :let={row} label="Name">{row.name}</:col>
+                  <:col :let={row} label="Category">{row.category}</:col>
+                  <:col :let={row} label="Calories" align="right">{row.calories}</:col>
+                  <:action :let={_row}>
+                    <span class="text-xs text-accent cursor-pointer hover:underline">Edit</span>
+                  </:action>
+                </.data_table>
+                <p :if={@dt_selected != []} class="text-xs text-text-muted mt-2">
+                  Selected: {Enum.join(@dt_selected, ", ")}
+                </p>
+              </div>
+
+              <%!-- 3. Compact + striped --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Compact + striped</p>
+                <.data_table id="dt-compact" rows={sample_table_rows()} compact striped>
+                  <:col :let={row} label="Name">{row.name}</:col>
+                  <:col :let={row} label="Category">{row.category}</:col>
+                  <:col :let={row} label="Calories" align="right">{row.calories}</:col>
+                </.data_table>
+              </div>
+
+              <%!-- 4. Empty state --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Empty state</p>
+                <.data_table id="dt-empty" rows={[]}>
+                  <:col label="Name"></:col>
+                  <:col label="Category"></:col>
+                  <:col label="Calories"></:col>
+                </.data_table>
+              </div>
+            </div>
+          </section>
+
           <%!-- ━━━ List ━━━ --%>
           <section id="list-section" class="space-y-4 scroll-mt-8">
             <h3 class="text-lg font-semibold text-text">List</h3>
@@ -715,6 +891,150 @@ defmodule AyaWeb.ShowcaseLive do
                   <.button variant="primary" size="sm">Create Experiment</.button>
                 </:action>
               </.empty_state>
+            </div>
+          </section>
+
+          <%!-- ━━━ Description List ━━━ --%>
+          <section id="description-list-section" class="space-y-4 scroll-mt-8">
+            <h3 class="text-lg font-semibold text-text">Description List</h3>
+            <.divider />
+            <div class="space-y-8">
+              <%!-- Stacked --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Stacked (default)</p>
+                <div class="max-w-md">
+                  <.description_list>
+                    <:item label="Name">Sourdough Bread</:item>
+                    <:item label="Category">Baking</:item>
+                    <:item label="Prep time">30 minutes</:item>
+                    <:item label="Cook time">45 minutes</:item>
+                    <:item label="Difficulty">
+                      <.badge variant="accent" size="sm">Intermediate</.badge>
+                    </:item>
+                  </.description_list>
+                </div>
+              </div>
+              <%!-- Inline --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Inline</p>
+                <div class="max-w-md">
+                  <.description_list variant="inline">
+                    <:item label="Calories">285 kcal</:item>
+                    <:item label="Protein">9g</:item>
+                    <:item label="Carbs">56g</:item>
+                    <:item label="Fat">2g</:item>
+                  </.description_list>
+                </div>
+              </div>
+              <%!-- Grid --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Grid (2 columns)</p>
+                <.description_list variant="grid" columns={2}>
+                  <:item label="Cuisine">French</:item>
+                  <:item label="Course">Main</:item>
+                  <:item label="Servings">4 portions</:item>
+                  <:item label="Yield">1 loaf</:item>
+                </.description_list>
+              </div>
+              <%!-- Striped --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Striped</p>
+                <div class="max-w-md">
+                  <.description_list variant="striped">
+                    <:item label="pH Level">4.2</:item>
+                    <:item label="Hydration">75%</:item>
+                    <:item label="Bulk Ferment">4 hours</:item>
+                    <:item label="Final Proof">12 hours</:item>
+                  </.description_list>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <%!-- ━━━ Timeline ━━━ --%>
+          <section id="timeline-section" class="space-y-4 scroll-mt-8">
+            <h3 class="text-lg font-semibold text-text">Timeline</h3>
+            <.divider />
+            <div class="space-y-8">
+              <%!-- Default --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Default</p>
+                <div class="max-w-lg">
+                  <.timeline>
+                    <:item
+                      title="Recipe published"
+                      timestamp="2 hours ago"
+                      icon_color="success"
+                      status="complete"
+                    >
+                    </:item>
+                    <:item
+                      title="Review approved"
+                      description="Passed quality review by the editorial team."
+                      timestamp="5 hours ago"
+                      icon_color="primary"
+                      status="complete"
+                    >
+                    </:item>
+                    <:item title="Submitted for review" timestamp="Yesterday" status="complete">
+                    </:item>
+                    <:item
+                      title="Draft created"
+                      description="Initial recipe draft with ingredients and steps."
+                      timestamp="3 days ago"
+                      status="complete"
+                    >
+                    </:item>
+                  </.timeline>
+                </div>
+              </div>
+              <%!-- With icons --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">With icons</p>
+                <div class="max-w-lg">
+                  <.timeline>
+                    <:item
+                      title="Delivered"
+                      icon="hero-check"
+                      icon_color="success"
+                      timestamp="Today"
+                      status="complete"
+                    />
+                    <:item
+                      title="Out for delivery"
+                      icon="hero-truck"
+                      icon_color="primary"
+                      timestamp="Today"
+                      status="complete"
+                    />
+                    <:item
+                      title="Processing"
+                      icon="hero-cog-6-tooth"
+                      icon_color="info"
+                      timestamp="Yesterday"
+                      status="current"
+                    />
+                    <:item
+                      title="Order placed"
+                      icon="hero-shopping-cart"
+                      timestamp="2 days ago"
+                      status="upcoming"
+                    />
+                  </.timeline>
+                </div>
+              </div>
+              <%!-- Compact --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Compact</p>
+                <div class="max-w-lg">
+                  <.timeline variant="compact">
+                    <:item title="Salt added" timestamp="10:42" icon_color="primary" />
+                    <:item title="Temperature check" description="72°C internal" timestamp="10:30" />
+                    <:item title="Oven preheated" timestamp="10:15" icon_color="warning" />
+                    <:item title="Dough shaped" timestamp="10:00" />
+                  </.timeline>
+                </div>
+              </div>
             </div>
           </section>
         </div>
@@ -963,6 +1283,224 @@ defmodule AyaWeb.ShowcaseLive do
               />
             </div>
           </section>
+
+          <%!-- ━━━ Image Field ━━━ --%>
+          <section id="image-field-section" class="space-y-4 scroll-mt-8">
+            <h3 class="text-lg font-semibold text-text">Image Field</h3>
+            <.divider />
+            <p class="text-sm text-text-secondary">
+              Drop-in image upload + processing + preview component. Shows upload progress,
+              processing state, and final image with responsive srcset.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <%!-- Idle state --%>
+              <div class="space-y-2">
+                <p class="text-xs text-text-muted">Idle (default)</p>
+                <.image_field
+                  upload={@uploads.image}
+                  status="idle"
+                  alt="Recipe photo"
+                  aspect="16/9"
+                  rounded="rounded-xl"
+                />
+              </div>
+
+              <%!-- Processing state --%>
+              <div class="space-y-2">
+                <p class="text-xs text-text-muted">Processing</p>
+                <.image_field
+                  status="processing"
+                  alt="Recipe photo"
+                  aspect="16/9"
+                  rounded="rounded-xl"
+                />
+              </div>
+
+              <%!-- Error state --%>
+              <div class="space-y-2">
+                <p class="text-xs text-text-muted">Error</p>
+                <.image_field
+                  status="error"
+                  error_message="Image format not supported"
+                  alt="Recipe photo"
+                  aspect="16/9"
+                  rounded="rounded-xl"
+                />
+              </div>
+
+              <%!-- Ready state (static demo) --%>
+              <div class="space-y-2">
+                <p class="text-xs text-text-muted">Ready</p>
+                <div class="image-field relative rounded-xl">
+                  <div class="image-field__ready relative group">
+                    <.image
+                      src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&q=80"
+                      alt="Artisan bread"
+                      width={800}
+                      height={533}
+                      placeholder="color"
+                      color="#d4a574"
+                      rounded="rounded-xl"
+                      aspect="16/9"
+                    />
+                    <button
+                      type="button"
+                      class={[
+                        "absolute top-2 right-2 p-1.5 rounded-full",
+                        "bg-black/60 text-white opacity-0 group-hover:opacity-100",
+                        "transition-opacity duration-150 hover:bg-black/80"
+                      ]}
+                      aria-label="Remove image"
+                    >
+                      <.icon name="hero-x-mark" class="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <%!-- ━━━ Slider ━━━ --%>
+          <section id="slider-section" class="space-y-4 scroll-mt-8">
+            <h3 class="text-lg font-semibold text-text">Slider</h3>
+            <.divider />
+            <div class="space-y-8">
+              <div class="max-w-sm">
+                <p class="text-xs text-text-muted mb-2">Basic with value</p>
+                <.slider id="demo-slider" name="volume" value={62} label="Volume" show_value />
+              </div>
+              <div class="max-w-sm">
+                <p class="text-xs text-text-muted mb-2">With prefix & step</p>
+                <.slider
+                  id="demo-price"
+                  name="price"
+                  min={0}
+                  max={200}
+                  step={5}
+                  value={75}
+                  label="Budget"
+                  show_value
+                  prefix="$"
+                />
+              </div>
+              <div class="max-w-sm">
+                <p class="text-xs text-text-muted mb-2">Range (dual-thumb)</p>
+                <.slider
+                  id="demo-range"
+                  name="range"
+                  min={0}
+                  max={500}
+                  step={10}
+                  value={[100, 350]}
+                  range
+                  label="Price range"
+                  show_value
+                  prefix="$"
+                />
+              </div>
+              <div class="max-w-sm">
+                <p class="text-xs text-text-muted mb-2">With marks</p>
+                <.slider
+                  id="demo-marks"
+                  name="temp"
+                  min={0}
+                  max={500}
+                  step={25}
+                  value={350}
+                  label="Oven temperature"
+                  show_value
+                  suffix="°F"
+                  marks={[
+                    %{value: 0, label: "0°F"},
+                    %{value: 212, label: "Boil"},
+                    %{value: 350, label: "Bake"},
+                    %{value: 500, label: "Broil"}
+                  ]}
+                />
+              </div>
+              <div class="max-w-sm">
+                <p class="text-xs text-text-muted mb-2">Sizes</p>
+                <div class="space-y-4">
+                  <.slider id="demo-sm" name="sm" value={40} size="sm" label="Small" />
+                  <.slider id="demo-md" name="md" value={60} size="md" label="Medium" />
+                  <.slider id="demo-lg" name="lg" value={80} size="lg" label="Large" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <%!-- ━━━ Color Picker ━━━ --%>
+          <section id="color-picker-section" class="space-y-4 scroll-mt-8">
+            <h3 class="text-lg font-semibold text-text">Color Picker</h3>
+            <.divider />
+            <div class="space-y-6">
+              <div>
+                <p class="text-xs text-text-muted mb-2">Default (with custom input)</p>
+                <.color_picker id="demo-color" name="color" label="Accent color" />
+              </div>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Custom swatches</p>
+                <.color_picker
+                  id="demo-food-colors"
+                  name="food_color"
+                  label="Food color"
+                  swatches={~w(#dc2626 #ea580c #d97706 #65a30d #16a34a #0891b2 #7c3aed #db2777)}
+                />
+              </div>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Swatches only (no custom)</p>
+                <.color_picker
+                  id="demo-simple-color"
+                  name="simple_color"
+                  label="Theme"
+                  allow_custom={false}
+                  swatches={~w(#c2410c #166534 #0369a1 #7c3aed #1c1917)}
+                />
+              </div>
+            </div>
+          </section>
+
+          <%!-- ━━━ Tag Input ━━━ --%>
+          <section id="tag-input-section" class="space-y-4 scroll-mt-8">
+            <h3 class="text-lg font-semibold text-text">Tag Input</h3>
+            <.divider />
+            <div class="space-y-6">
+              <div class="max-w-md">
+                <p class="text-xs text-text-muted mb-2">Basic</p>
+                <.live_component
+                  module={AyaWeb.UI.TagInput}
+                  id="demo-tags"
+                  field={@form[:tags]}
+                  label="Tags"
+                  placeholder="Type and press Enter..."
+                />
+              </div>
+              <div class="max-w-md">
+                <p class="text-xs text-text-muted mb-2">With suggestions</p>
+                <.live_component
+                  module={AyaWeb.UI.TagInput}
+                  id="demo-ingredient-tags"
+                  field={@form[:ingredients]}
+                  label="Ingredients"
+                  placeholder="Add ingredients..."
+                  suggestions={[
+                    "Salt",
+                    "Pepper",
+                    "Garlic",
+                    "Onion",
+                    "Olive Oil",
+                    "Butter",
+                    "Flour",
+                    "Sugar",
+                    "Cumin",
+                    "Paprika"
+                  ]}
+                  max_tags={6}
+                />
+              </div>
+            </div>
+          </section>
         </div>
 
         <%!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -975,19 +1513,63 @@ defmodule AyaWeb.ShowcaseLive do
           <section id="toast-section" class="space-y-4 scroll-mt-8">
             <h3 class="text-lg font-semibold text-text">Toast (Sonner-style)</h3>
             <.divider />
-            <div class="flex flex-wrap items-center gap-3">
-              <.button phx-click="toast_info" variant="soft" size="sm">Info</.button>
-              <.button phx-click="toast_success" variant="soft" size="sm">Success</.button>
-              <.button phx-click="toast_warning" variant="soft" size="sm">Warning</.button>
-              <.button phx-click="toast_error" variant="soft" size="sm">Error</.button>
-              <.button phx-click="toast_rich" variant="primary" size="sm">Rich Toast</.button>
-              <.divider orientation="vertical" class="h-6" />
-              <.toggle
-                field={@form[:rich_colors]}
-                label="Rich colors"
-                phx-click="toggle_rich_colors"
-                size="sm"
-              />
+            <div class="space-y-5">
+              <%!-- Types --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Types</p>
+                <div class="flex flex-wrap items-center gap-3">
+                  <.button phx-click="toast_info" variant="soft" size="sm">Info</.button>
+                  <.button phx-click="toast_success" variant="soft" size="sm">Success</.button>
+                  <.button phx-click="toast_warning" variant="soft" size="sm">Warning</.button>
+                  <.button phx-click="toast_error" variant="soft" size="sm">Error</.button>
+                  <.button phx-click="toast_rich" variant="primary" size="sm">Rich Toast</.button>
+                  <.divider orientation="vertical" class="h-6" />
+                  <.toggle
+                    field={@form[:rich_colors]}
+                    label="Rich colors"
+                    phx-click="toggle_rich_colors"
+                    size="sm"
+                  />
+                </div>
+              </div>
+              <%!-- Positions --%>
+              <div>
+                <p class="text-xs text-text-muted mb-2">Positions</p>
+                <div class="flex flex-wrap items-center gap-3">
+                  <.button
+                    phx-click="toast_position"
+                    phx-value-position="top-center"
+                    variant="ghost"
+                    size="sm"
+                  >
+                    Top center
+                  </.button>
+                  <.button
+                    phx-click="toast_position"
+                    phx-value-position="top-right"
+                    variant="ghost"
+                    size="sm"
+                  >
+                    Top right
+                  </.button>
+                  <.button
+                    phx-click="toast_position"
+                    phx-value-position="bottom-center"
+                    variant="ghost"
+                    size="sm"
+                  >
+                    Bottom center
+                  </.button>
+                  <.button
+                    phx-click="toast_position"
+                    phx-value-position="bottom-right"
+                    variant="ghost"
+                    size="sm"
+                  >
+                    Bottom right
+                  </.button>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -1420,6 +2002,7 @@ defmodule AyaWeb.ShowcaseLive do
                     <img
                       src="https://picsum.photos/seed/sourdough2/400/200"
                       class="w-full h-40 rounded-lg object-cover outline-none"
+                      alt=""
                     />
                   </div>
                   <h3 class="text-lg font-bold text-text">Sourdough Bread</h3>
@@ -1451,6 +2034,7 @@ defmodule AyaWeb.ShowcaseLive do
                   <img
                     src="https://picsum.photos/seed/ramen2/400/200"
                     class="w-full h-40 rounded-lg object-cover outline-none"
+                    alt=""
                   />
                   <h3 class="text-lg font-bold text-text">Miso Ramen</h3>
                   <div class="flex gap-4 text-sm text-text-muted">
@@ -1473,6 +2057,7 @@ defmodule AyaWeb.ShowcaseLive do
                   <img
                     src="https://picsum.photos/seed/kimchi2/400/200"
                     class="w-full h-40 rounded-lg object-cover outline-none"
+                    alt=""
                   />
                   <h3 class="text-lg font-bold text-text">Kimchi Fried Rice</h3>
                   <div class="flex gap-4 text-sm text-text-muted">
@@ -1495,6 +2080,7 @@ defmodule AyaWeb.ShowcaseLive do
                   <img
                     src="https://picsum.photos/seed/mousse2/400/200"
                     class="w-full h-40 rounded-lg object-cover outline-none"
+                    alt=""
                   />
                   <h3 class="text-lg font-bold text-text">Chocolate Mousse</h3>
                   <div class="flex gap-4 text-sm text-text-muted">
@@ -1875,6 +2461,59 @@ defmodule AyaWeb.ShowcaseLive do
                 </div>
               </:item>
             </.list_detail>
+          </section>
+        </div>
+
+        <%!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             EDITORS
+             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ --%>
+        <div class="mt-16 space-y-12">
+          <.category_header id="cat-editors" label="Editors" />
+
+          <%!-- ━━━ Rich Text Editor ━━━ --%>
+          <section id="rich-editor-section" class="space-y-4 scroll-mt-8">
+            <h3 class="text-lg font-semibold text-text">Rich Text Editor</h3>
+            <.divider />
+            <div class="space-y-8">
+              <div>
+                <p class="text-xs text-text-muted mb-2">Full editor with toolbar</p>
+                <.rich_editor
+                  id="demo-editor"
+                  name="content"
+                  label="Recipe instructions"
+                  placeholder="Write your recipe steps, tips, and notes..."
+                  value="<h2>Sourdough Bread</h2><p>A classic artisan bread with a <strong>crispy crust</strong> and <em>chewy interior</em>.</p><h3>Ingredients</h3><ul><li>500g bread flour</li><li>350g water</li><li>100g active starter</li><li>10g salt</li></ul><h3>Steps</h3><ol><li>Mix flour and water, autolyse for 30 minutes</li><li>Add starter and salt, fold until combined</li><li>Bulk ferment 4-6 hours with stretch and folds every 30 min</li><li>Shape and cold proof overnight</li><li>Bake at 450°F in a Dutch oven</li></ol><blockquote><p>Pro tip: The dough should feel <u>tacky but not sticky</u> after mixing.</p></blockquote>"
+                />
+              </div>
+              <div>
+                <p class="text-xs text-text-muted mb-2">With AI selection menu</p>
+                <.rich_editor
+                  id="demo-ai-editor"
+                  name="ai_content"
+                  label="Article draft"
+                  placeholder="Write something, then select text to see AI options..."
+                  ai_enabled
+                />
+              </div>
+            </div>
+          </section>
+
+          <%!-- ━━━ Markdown Editor ━━━ --%>
+          <section id="markdown-editor-section" class="space-y-4 scroll-mt-8">
+            <h3 class="text-lg font-semibold text-text">Markdown Editor</h3>
+            <.divider />
+            <div class="space-y-8">
+              <div>
+                <p class="text-xs text-text-muted mb-2">With syntax highlighting & preview toggle</p>
+                <.markdown_editor
+                  id="demo-md-editor"
+                  name="markdown"
+                  label="Recipe notes"
+                  placeholder="Write markdown..."
+                  value="# Sourdough Starter\n\nA **wild yeast** culture used to leaven bread.\n\n## Feeding Schedule\n\n- Morning: 1:1:1 ratio (starter:flour:water)\n- Evening: discard half, feed again\n\n## Tips\n\n> Keep at room temperature (70-75°F) for an active starter.\n> Refrigerate if not baking daily.\n\n### Signs of readiness\n\n1. Doubles in size within 4-6 hours\n2. Smells pleasantly sour\n3. Passes the `float test`\n\n---\n\nFor more details, see [The Bread Baker's Guide](https://example.com)."
+                />
+              </div>
+            </div>
           </section>
         </div>
 
@@ -3101,6 +3740,7 @@ defmodule AyaWeb.ShowcaseLive do
                         <img
                           src="https://picsum.photos/seed/sourdough2/400/150"
                           class="w-full h-28 rounded-lg object-cover outline-none"
+                          alt=""
                         />
                         <h4 class="text-sm font-bold text-text">Sourdough Bread</h4>
                         <p class="text-xs text-text-secondary">
@@ -3152,6 +3792,101 @@ defmodule AyaWeb.ShowcaseLive do
                 </div>
               </div>
             </div>
+          </section>
+
+          <%!-- ━━━ Drawer ━━━ --%>
+          <section id="drawer-section" class="space-y-4 scroll-mt-8">
+            <h3 class="text-lg font-semibold text-text">Drawer</h3>
+            <.divider />
+            <div class="flex flex-wrap items-center gap-3">
+              <button
+                :for={
+                  {id, label} <- [
+                    {"sc-drawer-right", "Right"},
+                    {"sc-drawer-left", "Left"},
+                    {"sc-drawer-bottom", "Bottom"}
+                  ]
+                }
+                data-commandfor={id}
+                data-command="show-modal"
+                class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-text cursor-pointer hover:bg-primary-hover transition-colors active:scale-[0.96]"
+              >
+                {label}
+              </button>
+            </div>
+
+            <%!-- Right drawer --%>
+            <.overlay id="sc-drawer-right" variant={:drawer_right} class="w-96">
+              <:header>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-base font-semibold">Filters</span>
+                  <span class="text-sm text-text-muted">Refine your recipe search.</span>
+                </div>
+              </:header>
+              <div class="space-y-4">
+                <.input
+                  name="cuisine"
+                  label="Cuisine"
+                  type="select"
+                  options={["Any", "French", "Italian", "Japanese", "Mexican"]}
+                  value="Any"
+                />
+                <.input
+                  name="difficulty"
+                  label="Difficulty"
+                  type="select"
+                  options={["Any", "Easy", "Intermediate", "Advanced"]}
+                  value="Any"
+                />
+              </div>
+              <:footer>
+                <div class="flex gap-3">
+                  <.button variant="primary" size="sm">Apply filters</.button>
+                  <.button variant="ghost" size="sm">Reset</.button>
+                </div>
+              </:footer>
+            </.overlay>
+
+            <%!-- Left drawer --%>
+            <.overlay id="sc-drawer-left" variant={:drawer_left} class="w-72">
+              <:header>
+                <span class="text-base font-semibold">Navigation</span>
+              </:header>
+              <nav class="space-y-1">
+                <a
+                  :for={item <- ["Home", "Recipes", "Ingredients", "Research", "Settings"]}
+                  href="#"
+                  class="block px-3 py-2 text-sm text-text-secondary hover:text-text hover:bg-surface-hover rounded-md transition-colors"
+                >
+                  {item}
+                </a>
+              </nav>
+            </.overlay>
+
+            <%!-- Bottom sheet --%>
+            <.overlay id="sc-drawer-bottom" variant={:bottom_sheet}>
+              <:header>
+                <span class="text-base font-semibold">Quick actions</span>
+              </:header>
+              <div class="grid grid-cols-3 gap-3 text-center">
+                <div
+                  :for={
+                    {icon, label} <- [
+                      {"hero-camera", "Photo"},
+                      {"hero-book-open", "Recipe"},
+                      {"hero-beaker", "Experiment"},
+                      {"hero-clipboard-document-list", "List"},
+                      {"hero-share", "Share"},
+                      {"hero-bookmark", "Save"}
+                    ]
+                  }
+                  class="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-surface-hover cursor-pointer transition-colors"
+                >
+                  <.icon name={icon} class="size-6 text-text-secondary" />
+                  <span class="text-xs text-text-secondary">{label}</span>
+                </div>
+              </div>
+            </.overlay>
           </section>
 
           <%!-- ━━━ Dropdown ━━━ --%>
@@ -3363,6 +4098,17 @@ defmodule AyaWeb.ShowcaseLive do
      })}
   end
 
+  def handle_event("toast_position", %{"position" => position}, socket) do
+    {:noreply,
+     push_event(socket, "toast:show", %{
+       kind: "info",
+       title: format_position(position),
+       description: "Toast from #{position}.",
+       position: position,
+       duration: 3000
+     })}
+  end
+
   def handle_event("toggle_rich_colors", _, socket) do
     {:noreply, assign(socket, :rich_colors, !socket.assigns.rich_colors)}
   end
@@ -3395,6 +4141,43 @@ defmodule AyaWeb.ShowcaseLive do
   def handle_event("remove_uploaded_file", %{"ref" => ref}, socket) do
     {:noreply, update(socket, :uploaded_files, &Enum.reject(&1, fn f -> f.ref == ref end))}
   end
+
+  def handle_event("sort", %{"field" => field}, socket) do
+    {sort_by, sort_dir} =
+      if socket.assigns.dt_sort_by == field do
+        {field, if(socket.assigns.dt_sort_dir == "asc", do: "desc", else: "asc")}
+      else
+        {field, "asc"}
+      end
+
+    {:noreply, assign(socket, dt_sort_by: sort_by, dt_sort_dir: sort_dir)}
+  end
+
+  def handle_event("select_row", %{"id" => id}, socket) do
+    selected =
+      if id in socket.assigns.dt_selected do
+        List.delete(socket.assigns.dt_selected, id)
+      else
+        [id | socket.assigns.dt_selected]
+      end
+
+    {:noreply, assign(socket, dt_selected: selected)}
+  end
+
+  def handle_event("select_all", _params, socket) do
+    all_ids = Enum.map(sample_table_rows(), & &1.id)
+
+    selected =
+      if MapSet.new(all_ids) |> MapSet.subset?(MapSet.new(socket.assigns.dt_selected)) do
+        []
+      else
+        all_ids
+      end
+
+    {:noreply, assign(socket, dt_selected: selected)}
+  end
+
+  defp format_position(pos), do: pos |> String.replace("-", " ") |> String.capitalize()
 
   # Auto-consume completed uploads — save metadata for display
   defp handle_upload_progress(:files, entry, socket) do
@@ -3465,12 +4248,15 @@ defmodule AyaWeb.ShowcaseLive do
          {"Expandable Cards", "expandable-cards-section"},
          {"Stat Card", "stat-card-section"},
          {"Table", "table-section"},
+         {"Data Table", "data-table-section"},
          {"List", "list-section"},
          {"Progress", "progress-section"},
          {"Skeleton", "skeleton-section"},
          {"Engagement Stats", "engagement-stats-section"},
          {"Image", "image-section"},
-         {"Empty State", "empty-state-section"}
+         {"Empty State", "empty-state-section"},
+         {"Description List", "description-list-section"},
+         {"Timeline", "timeline-section"}
        ]},
       {"Forms & Input",
        [
@@ -3480,7 +4266,11 @@ defmodule AyaWeb.ShowcaseLive do
          {"Radio", "radio-section"},
          {"Search Select", "search-select-section"},
          {"Date Picker", "date-picker-section"},
-         {"File Picker", "file-picker-section"}
+         {"File Picker", "file-picker-section"},
+         {"Image Field", "image-field-section"},
+         {"Slider", "slider-section"},
+         {"Color Picker", "color-picker-section"},
+         {"Tag Input", "tag-input-section"}
        ]},
       {"Feedback",
        [
@@ -3499,11 +4289,17 @@ defmodule AyaWeb.ShowcaseLive do
          {"Split Pane", "split-pane-section"},
          {"List Detail", "list-detail-section"}
        ]},
+      {"Editors",
+       [
+         {"Rich Text Editor", "rich-editor-section"},
+         {"Markdown Editor", "markdown-editor-section"}
+       ]},
       {"Overlays",
        [
          {"Share Sheet", "share-sheet-section"},
          {"Morph Dialog", "morph-dialog-section"},
          {"Overlay", "overlay-section"},
+         {"Drawer", "drawer-section"},
          {"Family Dialog", "family-dialog-section"},
          {"Hover Card", "hover-card-section"},
          {"Dropdown", "dropdown-section"},

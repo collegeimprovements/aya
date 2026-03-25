@@ -7,20 +7,43 @@ defmodule AyaWeb.UI.Toast do
   Place `<.toast_container flash={@flash} />` in your LiveView or layout.
   Place `<.toast_trigger />` in LiveViews that use rich `push_event` toasts.
 
+  ## Container attrs
+
+  - `position` — one of `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center`, `bottom-right` (default: `bottom-right`)
+  - `dir` — text direction: `auto`, `ltr`, or `rtl` (default: `auto`)
+  - `duration` — default auto-dismiss time in ms (default: `4000`). Error and loading toasts are infinite by default. Per-toast duration can override this via `push_event`.
+  - `rich_colors` — type-specific colored backgrounds (success=green, error=red, etc.)
+
   ## Styles
 
   - Default: clean white/dark card (Sonner's signature look)
-  - `rich_colors`: type-specific colored backgrounds (success=green, error=red, etc.)
+  - `rich_colors`: type-specific colored backgrounds
 
   ## Flash toasts
 
       put_flash(socket, :info, "Saved!")
 
-  ## Rich toasts
+  ## Rich toasts (via push_event)
 
       push_event(socket, "toast:show", %{
-        kind: "success", title: "Published", description: "Your recipe is live.", duration: 6000
+        kind: "success",
+        title: "Published",
+        description: "Your recipe is live.",
+        duration: 6000
       })
+
+  Per-toast `duration` overrides the container default. Set `0` for infinite.
+
+  ## Examples
+
+      <%!-- Default: bottom-right, 4s dismiss --%>
+      <.toast_container flash={@flash} />
+
+      <%!-- Top-center, colored, 6s default dismiss --%>
+      <.toast_container flash={@flash} position="top-center" rich_colors duration={6000} />
+
+      <%!-- RTL layout --%>
+      <.toast_container flash={@flash} dir="rtl" />
   """
 
   use Phoenix.Component
@@ -28,6 +51,15 @@ defmodule AyaWeb.UI.Toast do
   attr :position, :string,
     default: "bottom-right",
     values: ~w(top-left top-center top-right bottom-left bottom-center bottom-right)
+
+  attr :dir, :string,
+    default: "auto",
+    values: ~w(auto ltr rtl),
+    doc: "text direction — auto, ltr, or rtl"
+
+  attr :duration, :integer,
+    default: nil,
+    doc: "default dismiss time in ms (nil = 4000; error/loading = infinite)"
 
   attr :rich_colors, :boolean, default: false, doc: "use type-specific colored backgrounds"
   attr :flash, :map, default: %{}
@@ -52,6 +84,8 @@ defmodule AyaWeb.UI.Toast do
       data-y={@y}
       data-x={@x}
       data-rich-colors={@rich_colors && "true"}
+      data-duration={@duration}
+      dir={if @dir != "auto", do: @dir}
       class={@class}
     >
     </ol>

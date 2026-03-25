@@ -47,10 +47,11 @@ defmodule AyaWeb.UI.ListDetail do
     ~H"""
     <div id={@id} phx-hook=".ListDetail" class={["ld", @class]} data-direction={@direction}>
       <%!-- List --%>
-      <div class={["ld__list", @list_width && "shrink-0 #{@list_width}"]}>
+      <div class={["ld__list", @list_width && "shrink-0 #{@list_width}"]} role="tablist">
         <button
           :for={item <- @item}
           type="button"
+          role="tab"
           class="ld__item"
           data-ld-id={item.id}
           aria-selected="false"

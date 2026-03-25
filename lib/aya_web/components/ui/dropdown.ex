@@ -1,6 +1,6 @@
 defmodule AyaWeb.UI.Dropdown do
   @moduledoc """
-  Dropdown menu. JS-positioned, works in all browsers.
+  Dropdown menu using CSS Anchor Positioning.
 
   ## Examples
 
@@ -39,7 +39,7 @@ defmodule AyaWeb.UI.Dropdown do
   def dropdown(assigns) do
     ~H"""
     <div class="inline-block" id={@id} phx-hook=".Dropdown">
-      <div data-dropdown-trigger>
+      <div data-dropdown-trigger style={"anchor-name: --dd-#{@id}"}>
         {render_slot(@trigger)}
       </div>
 
@@ -53,7 +53,7 @@ defmodule AyaWeb.UI.Dropdown do
           "transition-[opacity,transform] duration-150 ease-out",
           @class
         ]}
-        style="top:0;left:0"
+        style={"position-anchor: --dd-#{@id}; top: anchor(bottom); right: anchor(end); margin-top: 0.25rem; position-try-fallbacks: flip-block;"}
         hidden
       >
         <.dropdown_item :for={item <- @item} item={item} dropdown_id={@id} />
@@ -69,23 +69,9 @@ defmodule AyaWeb.UI.Dropdown do
 
             let open = false
 
-            const position = () => {
-              const tr = trigger.getBoundingClientRect()
-              const pw = panel.offsetWidth
-              // Default: below trigger, right-aligned
-              let top = tr.bottom + 4
-              let left = tr.right - pw
-              // Clamp to viewport
-              if (left < 8) left = tr.left
-              if (top + panel.offsetHeight > window.innerHeight - 8) top = tr.top - panel.offsetHeight - 4
-              panel.style.top = top + "px"
-              panel.style.left = left + "px"
-            }
-
             const show = () => {
               open = true
               panel.hidden = false
-              position()
               requestAnimationFrame(() => {
                 panel.classList.remove("opacity-0", "scale-95", "pointer-events-none")
                 panel.classList.add("opacity-100", "scale-100")

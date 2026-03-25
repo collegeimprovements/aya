@@ -18,7 +18,10 @@ defmodule AyaWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    live "/showcase", ShowcaseLive
+
+    live_session :default, layout: {AyaWeb.Layouts, :app} do
+      live "/showcase", ShowcaseLive
+    end
   end
 
   # ── API ───────────────────────────────────────────────────────

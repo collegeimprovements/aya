@@ -43,6 +43,7 @@ defmodule AyaWeb.UI.DatePicker do
         id={"#{@id}-input"}
         disabled={@disabled}
         data-date-trigger
+        style={"anchor-name: --dp-#{@id}"}
         class={[
           "flex items-center justify-between w-full",
           "rounded-md border border-border bg-surface px-3 py-2 text-sm text-left",
@@ -63,8 +64,8 @@ defmodule AyaWeb.UI.DatePicker do
       <%!-- Calendar dropdown --%>
       <div
         data-date-panel
-        class="fixed z-[9999] w-[280px] rounded-lg bg-surface border border-border shadow-lg p-3 opacity-0 scale-95 pointer-events-none transition-[opacity,transform] duration-150 ease-out"
-        style="top:0;left:0"
+        class="dp-panel w-[280px] p-3 opacity-0 scale-95 pointer-events-none transition-[opacity,transform] duration-150 ease-out"
+        style={"position-anchor: --dp-#{@id}"}
         hidden
       >
         <%!-- Month/year header --%>
@@ -196,24 +197,12 @@ defmodule AyaWeb.UI.DatePicker do
               }
             }
 
-            const position = () => {
-              const tr = trigger.getBoundingClientRect()
-              let top = tr.bottom + 4
-              let left = tr.left
-              if (left + 280 > window.innerWidth - 8) left = window.innerWidth - 288
-              if (left < 8) left = 8
-              if (top + 320 > window.innerHeight - 8) top = tr.top - 320 - 4
-              panel.style.top = top + "px"
-              panel.style.left = left + "px"
-            }
-
             const show = () => {
               if (open) return
               open = true
               viewDate = selected ? new Date(selected) : new Date()
               render()
               panel.hidden = false
-              position()
               requestAnimationFrame(() => {
                 panel.classList.remove("opacity-0", "scale-95", "pointer-events-none")
                 panel.classList.add("opacity-100", "scale-100")
@@ -325,6 +314,7 @@ defmodule AyaWeb.UI.DatePicker do
         type="button"
         disabled={@disabled}
         data-range-trigger
+        style={"anchor-name: --drp-#{@id}"}
         class={[
           "flex items-center justify-between w-full",
           "rounded-md border border-border bg-surface px-3 py-2 text-sm text-left",
@@ -342,8 +332,8 @@ defmodule AyaWeb.UI.DatePicker do
       <%!-- Two-month calendar panel --%>
       <div
         data-range-panel
-        class="fixed z-[9999] rounded-lg bg-surface border border-border shadow-lg p-3 opacity-0 scale-95 pointer-events-none transition-[opacity,transform] duration-150 ease-out"
-        style="top:0;left:0"
+        class="dp-panel p-3 opacity-0 scale-95 pointer-events-none transition-[opacity,transform] duration-150 ease-out"
+        style={"position-anchor: --drp-#{@id}"}
         hidden
       >
         <div class="flex gap-4">
@@ -562,22 +552,12 @@ defmodule AyaWeb.UI.DatePicker do
               renderMonth(gridR, labelR, rDate.getFullYear(), rDate.getMonth())
             }
 
-            const position = () => {
-              const tr = trigger.getBoundingClientRect()
-              const pw = panel.offsetWidth || 520
-              let top = tr.bottom + 4, left = tr.left
-              if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8
-              if (left < 8) left = 8
-              if (top + 340 > window.innerHeight - 8) top = tr.top - 340 - 4
-              panel.style.top = top + "px"; panel.style.left = left + "px"
-            }
-
             const show = () => {
               if (open) return; open = true
               if (rangeStart) viewMonth = new Date(rangeStart.getFullYear(), rangeStart.getMonth(), 1)
               else viewMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
               render()
-              panel.hidden = false; position()
+              panel.hidden = false
               requestAnimationFrame(() => {
                 panel.classList.remove("opacity-0", "scale-95", "pointer-events-none")
                 panel.classList.add("opacity-100", "scale-100")

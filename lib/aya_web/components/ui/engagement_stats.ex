@@ -56,7 +56,12 @@ defmodule AyaWeb.UI.EngagementStats do
       </div>
 
       <%!-- Repost --%>
-      <button type="button" class="es__item es__btn" data-toggle="reposts" aria-label="Repost">
+      <button
+        type="button"
+        class="es__item es__btn"
+        data-toggle="reposts"
+        aria-label={"Repost #{format_compact(@reposts)}"}
+      >
         <svg
           class="es__icon es__icon--repost"
           viewBox="0 0 24 20"
@@ -72,7 +77,12 @@ defmodule AyaWeb.UI.EngagementStats do
       </button>
 
       <%!-- Like --%>
-      <button type="button" class="es__item es__btn" data-toggle="likes" aria-label="Like">
+      <button
+        type="button"
+        class="es__item es__btn"
+        data-toggle="likes"
+        aria-label={"Like #{format_compact(@likes)}"}
+      >
         <svg
           class="es__icon es__icon--like"
           viewBox="0 0 24 22"
@@ -91,7 +101,12 @@ defmodule AyaWeb.UI.EngagementStats do
       </button>
 
       <%!-- Bookmark --%>
-      <button type="button" class="es__item es__btn" data-toggle="bookmarks" aria-label="Bookmark">
+      <button
+        type="button"
+        class="es__item es__btn"
+        data-toggle="bookmarks"
+        aria-label={"Bookmark #{format_compact(@bookmarks)}"}
+      >
         <svg
           class="es__icon es__icon--bookmark"
           viewBox="0 0 24 22"

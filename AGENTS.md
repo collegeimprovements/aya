@@ -19,6 +19,8 @@ Aya is a comprehensive food and food science application: Latest Food News, Reci
 9. [Component Library](#component-library)
 10. [Testing Framework](#testing-framework)
 11. [Spec-Driven Development](#spec-driven-development)
+12. [Accessibility (a11y)](#accessibility-a11y)
+13. [Best Practices](#best-practices)
 
 ---
 
@@ -6059,6 +6061,131 @@ When adding a new feature:
 6. Write tests
 7. Build LiveView UI
 8. Update this file with any architectural decisions
+
+---
+
+## Accessibility (a11y)
+
+All components must meet WCAG 2.1 AA. Target Lighthouse accessibility score: 95+.
+
+### Color Contrast
+
+- All text must meet **4.5:1** contrast ratio against its background (WCAG 1.4.3).
+- `text-muted` token is tuned for contrast on both `surface` and `surface-alt` backgrounds.
+- Light mode: `#706963` on `#fafaf8` (surface) ≈ 5.2:1, on `#f5f3ef` (surface-alt) ≈ 4.8:1.
+- Dark mode: `#a8a29e` on `#1c1917` (surface) ≈ 5.9:1.
+- **Animations** that reduce opacity must keep the faded state above 4.5:1. The `loading-pulse` animation uses `opacity: 0.85` as its minimum.
+- When adding new color tokens, verify contrast with both `surface` and `surface-alt`.
+
+### Links in Text
+
+Links inside prose/body text **must not rely on color alone** to be distinguishable (WCAG 1.4.1):
+
+- Use `variant="underline"` for links inside paragraphs/prose blocks.
+- `variant="default"` is acceptable for standalone/nav links where the link context is clear.
+- The `underline` variant uses a `::after` pseudo-element (not `text-decoration`) for animatability.
+
+### ARIA
+
+- **Icon-only buttons** must have `aria-label`:
+  ```heex
+  <.button variant="ghost" size="sm" class="!px-2" aria-label="Delete">
+    <.icon name="hero-trash" class="size-4" />
+  </.button>
+  ```
+
+- **`aria-selected`** requires `role="tab"` on the element and `role="tablist"` on the container. Never use `aria-selected` on plain buttons.
+
+- **`aria-label` must include visible text** when the element has visible text content. If a button shows "Repost 42", the aria-label should be `"Repost 42"`, not just `"Repost"` (WCAG label-content-name-mismatch).
+
+- **Toggle buttons** should use `aria-pressed` (not `aria-selected`) unless they're tabs.
+
+### Landmarks
+
+- Every page must have exactly one `<main>` landmark. This is handled by the `Layouts.app` component.
+- All LiveViews should render inside the app layout via `live_session`:
+  ```elixir
+  live_session :default, layout: {AyaWeb.Layouts, :app} do
+    live "/showcase", ShowcaseLive
+  end
+  ```
+
+### Images
+
+- All `<img>` tags must have an `alt` attribute.
+- Decorative images use `alt=""` (empty string, not missing).
+- The `AyaWeb.UI.Image` component enforces `alt` as a required attr.
+
+### Disabled State
+
+Components with a `disabled` attr should:
+1. Strip navigation/action attrs (prevent the action)
+2. Add `aria-disabled="true"`
+3. Add `tabindex="-1"` (remove from tab order)
+4. Apply visual dimming (`opacity-50 pointer-events-none cursor-not-allowed`)
+
+### Focus Indicators
+
+All interactive elements must have visible focus indicators:
+- Use `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring` (the `@link_focus` module attribute in CoreComponents).
+- All non-plain link variants include this automatically.
+- Custom interactive elements must add focus styles manually.
+
+---
+
+## Best Practices
+
+### SEO
+
+- Every page must have a `<meta name="description">` tag. The root layout includes a default; override per-page via assigns if needed.
+- All images must have `alt` attributes (also an a11y requirement).
+- Use semantic HTML: `<main>`, `<nav>`, `<header>`, `<section>`, `<article>`.
+
+### Resource Hints (Speculation Rules)
+
+The `<.link>` component supports prefetch/preload/prerender via the Speculation Rules API:
+
+```heex
+<.link navigate={~p"/recipes"} prefetch variant="default">Hover to prefetch</.link>
+<.link navigate={~p"/recipes"} preload variant="default">Prefetch on mount</.link>
+<.link navigate={~p"/recipes"} prerender variant="default">Prerender (Chrome)</.link>
+```
+
+Implementation details:
+- Chrome 109+: Uses the Speculation Rules API (`<script type="speculationrules">`)
+- Firefox/Safari: Falls back to `<link rel="prefetch">`
+- Prerender is Chrome-only — degrades silently on other browsers
+- All requests are deduplicated at the `action:url` level
+- The hook (`.LinkHook`) is resolved via `@link_hook_name` module attribute to avoid colocated hook name resolution issues with dynamic `phx-hook` values
+
+### Colocated Hooks
+
+When using `phx-hook` with a **dynamic** (conditional) value, the HEEx compiler cannot resolve the `.HookName` prefix at compile time. Use the fully qualified name:
+
+```elixir
+# Module attribute resolves the full hook name at compile time
+@hook_name (Module.split(__MODULE__) |> Enum.join(".")) <> ".MyHook"
+
+# Pass via assigns
+assigns = assign(assigns, _hook: if(needs_hook?, do: @hook_name))
+
+# In template — uses the resolved string, not the `.` prefix
+phx-hook={@_hook}
+```
+
+Static `phx-hook` values (e.g., `phx-hook=".Overlay"`) are resolved automatically by the compiler.
+
+### LiveView Layouts
+
+When using a function component as a LiveView layout, it receives content as `@inner_content` (an assign), not `@inner_block` (a slot). Handle both if the component is used in both contexts:
+
+```elixir
+attr :inner_content, :any, default: nil
+slot :inner_block
+
+# In template:
+{@inner_content || render_slot(@inner_block)}
+```
 
 ---
 

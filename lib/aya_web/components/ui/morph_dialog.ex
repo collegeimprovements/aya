@@ -176,6 +176,9 @@ defmodule AyaWeb.UI.MorphDialog do
           const position = this.dialog.dataset.position
           const tr = this.trigger.getBoundingClientRect()
 
+          // Hide content BEFORE showing dialog to prevent flash
+          this.content.style.opacity = "0"
+
           // Show dialog
           this.dialog.showModal()
           this.trigger.style.visibility = "hidden"
@@ -186,9 +189,6 @@ defmodule AyaWeb.UI.MorphDialog do
 
           // Measure final positions (before animation mutates layout)
           const fin = this.surface.getBoundingClientRect()
-
-          // Hide content during morph
-          this.content.style.opacity = "0"
 
           // ── CTA ghost: trigger → confirm ──
           let ctaAnim = null
@@ -230,6 +230,8 @@ defmodule AyaWeb.UI.MorphDialog do
           }
 
           // ── Surface morph: trigger rect → dialog rect ──
+          // Fix surface to screen coords during animation
+          this.surface.style.position = "fixed"
           const anim = this.surface.animate([
             {
               left: `${tr.left}px`, top: `${tr.top}px`,
@@ -241,7 +243,7 @@ defmodule AyaWeb.UI.MorphDialog do
               width: `${fin.width}px`, height: `${fin.height}px`,
               borderRadius: "20px"
             }
-          ], { duration: 350, easing: this.ease, fill: "both" })
+          ], { duration: 350, easing: this.ease, fill: "forwards" })
 
           // Backdrop fades in
           this.overlay.animate(
@@ -250,7 +252,8 @@ defmodule AyaWeb.UI.MorphDialog do
           )
 
           anim.onfinish = () => {
-            anim.cancel()
+            // Keep surface positioned via fill:forwards, cancel on close
+            this._openAnim = anim
             // Reveal content with slide-up
             this.content.style.opacity = ""
             this.content.animate(
@@ -278,6 +281,10 @@ defmodule AyaWeb.UI.MorphDialog do
 
           const tr = this.trigger.getBoundingClientRect()
           const cur = this.surface.getBoundingClientRect()
+
+          // Cancel open animation fill so we can re-animate
+          if (this._openAnim) { this._openAnim.cancel(); this._openAnim = null }
+          this.surface.style.position = ""
 
           // ── CTA ghost: confirm → trigger ──
           let ctaAnim = null
@@ -325,7 +332,8 @@ defmodule AyaWeb.UI.MorphDialog do
             { duration: 200, easing: "ease-in", fill: "forwards" }
           )
 
-          // Surface morphs back to trigger rect — also fades out to avoid white shell
+          // Surface morphs back to trigger rect — also fades out
+          this.surface.style.position = "fixed"
           const anim = this.surface.animate([
             {
               left: `${cur.left}px`, top: `${cur.top}px`,
@@ -353,6 +361,7 @@ defmodule AyaWeb.UI.MorphDialog do
           anim.onfinish = () => {
             this.dialog.close()
             document.documentElement.style.overflow = ""
+            this.surface.style.position = ""
             this.content.style.opacity = ""
             this.content.style.transform = ""
             this.resetOriginStyles()

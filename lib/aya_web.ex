@@ -84,7 +84,8 @@ defmodule AyaWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components
+      # Core UI components (our link/1 overrides Phoenix's)
+      import Phoenix.Component, except: [link: 1]
       import AyaWeb.CoreComponents
 
       # UI component library
@@ -95,10 +96,14 @@ defmodule AyaWeb do
       import AyaWeb.UI.Breadcrumb
       import AyaWeb.UI.Card
       import AyaWeb.UI.Checkbox
+      import AyaWeb.UI.ColorPicker
       import AyaWeb.UI.CommandPalette
       import AyaWeb.UI.CopyButton
+      import AyaWeb.UI.DataTable
       import AyaWeb.UI.DatePicker
+      import AyaWeb.UI.DescriptionList
       import AyaWeb.UI.Divider
+      import AyaWeb.UI.Drawer
       import AyaWeb.UI.Dropdown
       import AyaWeb.UI.EmptyState
       import AyaWeb.UI.EngagementStats
@@ -107,24 +112,29 @@ defmodule AyaWeb do
       import AyaWeb.UI.FamilyDialog
       import AyaWeb.UI.HoverCard
       import AyaWeb.UI.Image
+      import AyaWeb.UI.ImageField
       import AyaWeb.UI.InlineAlert
       import AyaWeb.UI.Kbd
-      import AyaWeb.UI.Link
+      # Link is in CoreComponents (extended Phoenix.Component.link/1)
       import AyaWeb.UI.ListDetail
       import AyaWeb.UI.Loading
+      import AyaWeb.UI.MarkdownEditor
       import AyaWeb.UI.MorphDialog
       import AyaWeb.UI.MultiStep
       import AyaWeb.UI.Overlay
       import AyaWeb.UI.Pagination
       import AyaWeb.UI.Progress
       import AyaWeb.UI.Radio
+      import AyaWeb.UI.RichEditor
       import AyaWeb.UI.ShareSheet
       import AyaWeb.UI.Skeleton
+      import AyaWeb.UI.Slider
       import AyaWeb.UI.SplitPane
       import AyaWeb.UI.Spinner
       import AyaWeb.UI.StatCard
       import AyaWeb.UI.Steps
       import AyaWeb.UI.Tabs
+      import AyaWeb.UI.Timeline
       import AyaWeb.UI.Toast
       import AyaWeb.UI.Toggle
       import AyaWeb.UI.Tooltip

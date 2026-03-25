@@ -4,12 +4,14 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/aya"
 import topbar from "../vendor/topbar"
 import ECharts from "./hooks/echarts_hook"
+import RichEditor from "./hooks/rich_editor_hook"
+import MarkdownEditor from "./hooks/markdown_editor_hook"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, ECharts},
+  hooks: {...colocatedHooks, ECharts, RichEditor, MarkdownEditor},
 })
 
 // ── Topbar (page loading progress) ──────────────────────────
@@ -53,7 +55,7 @@ darkMediaQuery.addEventListener("change", () => {
 window.AyaToast = (() => {
   const GAP = 14
   const VISIBLE = 3
-  const DURATION = 4000
+  const DEFAULT_DURATION = 4000
   const DISMISS_MS = 200
 
   let toasts = []   // { id, el, height, duration, remaining, timer, startTime, removed }
@@ -65,11 +67,19 @@ window.AyaToast = (() => {
   const isBottom = () => container()?.dataset.y === "bottom"
   const lift = () => isBottom() ? -1 : 1
 
-  function addToast({ kind = "default", title, description, action_label, action_event, duration } = {}) {
+  function addToast({ kind = "default", title, description, action_label, action_event, duration, position } = {}) {
     const c = container()
     if (!c) return
+
+    // Allow per-toast position override (e.g. "bottom-center" → y="bottom", x="center")
+    if (position) {
+      const parts = position.split("-")
+      if (parts.length === 2) { c.dataset.y = parts[0]; c.dataset.x = parts[1] }
+    }
+
     const id = ++idCounter
-    const dur = duration ?? (kind === "error" || kind === "loading" ? 0 : DURATION)
+    const containerDuration = parseInt(c.dataset.duration) || DEFAULT_DURATION
+    const dur = duration ?? (kind === "error" || kind === "loading" ? 0 : containerDuration)
 
     const li = document.createElement("li")
     li.setAttribute("data-aya-toast", "")

@@ -161,7 +161,7 @@ defmodule AyaWeb.UI.FilePicker do
           {length(@upload.entries) + length(@uploaded_files)} file{if length(@upload.entries) +
                                                                         length(@uploaded_files) != 1,
                                                                       do: "s"} · {@total_size_mb} MB
-          <span :if={@max_total}> /  {@max_total} MB</span>
+          <span :if={@max_total}> /   {@max_total} MB</span>
         </span>
       </div>
     </div>

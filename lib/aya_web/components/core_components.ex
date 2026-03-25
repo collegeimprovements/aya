@@ -23,30 +23,140 @@ defmodule AyaWeb.CoreComponents do
 
   # ── Link (extended) ──────────────────────────────────────────────
 
+  @link_hook_name (Module.split(__MODULE__) |> Enum.join(".")) <> ".LinkHook"
+
   @doc """
   Extended `<.link>` — drop-in replacement for `Phoenix.Component.link/1`.
 
-  Supports all standard Phoenix link attrs plus:
+  Wraps `Phoenix.Component.link/1` with design-system variants, speculation
+  rules, and convenience attrs. Accepts all standard Phoenix link attrs
+  (`navigate`, `patch`, `href`, `method`, `replace`, `csrf_token`) plus
+  the extensions below.
 
-  ## Resource hints
-  - `prefetch` — prefetch page on hover/touch
-  - `preload` — prefetch immediately on render
-  - `prerender` — prerender via Speculation Rules API (Chrome 109+)
+  ## Navigation
 
-  ## Convenience
-  - `external` — auto-adds `target="_blank" rel="noopener noreferrer"`
-  - `active` — adds active class when `active_path` matches current path
-  - `active_path` — path to match for active state (defaults to `navigate`/`patch`/`href`)
-  - `active_class` — class applied when active (default: `"text-text font-medium"`)
-  - `disabled` — prevents click, dims the link
-  - `loading` — shows a spinner on click until navigation completes
+  Use exactly one of `navigate`, `patch`, or `href`:
 
-  ## Examples
+      <.link navigate={~p"/recipes"}>Full page nav</.link>
+      <.link patch={~p"/recipes?sort=name"}>Patch (same LiveView)</.link>
+      <.link href="https://github.com">Standard href</.link>
 
-      <.link navigate={~p"/recipes"} prefetch>Recipes</.link>
+  ## Variants
+
+  Controls text color, hover state, and underline treatment. Default is
+  `"plain"` (no styling) so existing unstyled `<.link>` calls keep working.
+
+  | Variant            | Color                        | Underline              |
+  |--------------------|------------------------------|------------------------|
+  | `"default"`        | link color → link-hover      | none                   |
+  | `"muted"`          | secondary text → text        | none                   |
+  | `"subtle"`         | body text → link color       | none                   |
+  | `"underline"`      | link color → link-hover      | ::after always visible (30% → 100% on hover) |
+  | `"underline-hover"`| link color → link-hover      | ::after slides in on hover (left→right) |
+  | `"plain"`          | inherit                      | none                   |
+
+  All non-plain variants include `focus-visible` outline and `transition-colors`.
+
+  The underline is a `::after` pseudo-element (not `text-decoration`), so
+  width, opacity, thickness, and transforms are all independently animatable.
+  To change the animation, edit `link_underline_class/1`.
+
+      <.link navigate={~p"/recipes"} variant="default">Default</.link>
+      <.link navigate={~p"/recipes"} variant="underline">Underline</.link>
+
+  ## Speculation Rules (prefetch / preload / prerender)
+
+  Resource hints for instant page transitions. Uses the Speculation Rules
+  API (Chrome 109+) with `<link rel="prefetch">` as a cross-browser
+  fallback. All requests are deduplicated at the action+URL level — the
+  same URL is only fetched/prerendered once regardless of how many links
+  reference it.
+
+  | Attr        | When it fires            | Chrome 109+               | Firefox / Safari          |
+  |-------------|--------------------------|---------------------------|---------------------------|
+  | `prefetch`  | hover / focus / touch    | Speculation Rules prefetch | `<link rel="prefetch">`   |
+  | `preload`   | immediately on mount     | Speculation Rules prefetch | `<link rel="prefetch">`   |
+  | `prerender` | immediately on mount     | Speculation Rules prerender| no-op (Chrome only)       |
+
+  `preload` supersedes `prefetch` (fires immediately, so hover listeners
+  are never attached). `prerender` is the most aggressive — Chrome renders
+  the page in a hidden tab for instant swap on click.
+
+      <.link navigate={~p"/recipes"} prefetch variant="default">Hover to prefetch</.link>
+      <.link navigate={~p"/recipes"} preload variant="default">Prefetch on mount</.link>
+      <.link navigate={~p"/recipes"} prerender variant="default">Prerender (Chrome)</.link>
+
+  ## External links
+
+  Adds `target="_blank"` and `rel="noopener noreferrer"` automatically.
+  The caller's explicit `target`/`rel` in `@rest` takes precedence for `target`.
+
       <.link href="https://github.com" external>GitHub</.link>
+
+  ## Active state
+
+  Apply a class when the link matches the current page. Useful for nav menus.
+
+      <.link navigate={~p"/recipes"} active={@live_action == :index}>Recipes</.link>
+      <.link navigate={~p"/recipes"} active={@active} active_class="font-bold border-b-2 border-link">
+        Custom active style
+      </.link>
+
+  Sets `aria-current="page"` when active.
+
+  ## Disabled state
+
+  Strips `navigate`/`patch`/`href` (no navigation), dims the element,
+  removes it from tab order (`tabindex="-1"`), and sets `aria-disabled`.
+
+      <.link navigate={~p"/settings"} disabled={!@can_access} variant="default">
+        Settings
+      </.link>
+
+  ## Loading spinner
+
+  Shows an inline spinner on click, hides it when navigation completes
+  (`phx:page-loading-stop`). The spinner is a hidden `<svg>` toggled via
+  the `.LinkHook` — no extra assigns needed.
+
+      <.link navigate={~p"/slow-page"} loading variant="default">Submit</.link>
+
+  ## Hook & ID behavior
+
+  `prefetch`, `preload`, `prerender`, and `loading` all require a LiveView
+  hook (`.LinkHook`). The hook needs an `id` on the element. IDs are
+  resolved in this order:
+
+  1. Explicit `id` from the caller (always wins)
+  2. Stable hash of the URL (`pl-<8 hex chars>`) — survives re-renders
+  3. `System.unique_integer` fallback (loading-only links with no URL)
+
+  When multiple links on the same page share a URL and use speculation
+  attrs, provide explicit `id`s to avoid duplicate DOM IDs:
+
+      <.link navigate={~p"/"} prefetch variant="default" id="nav-home">Home</.link>
+      <.link navigate={~p"/"} prefetch variant="muted" id="footer-home">Home</.link>
+
+  ## All examples
+
+      <%!-- Basic --%>
+      <.link navigate={~p"/recipes"}>Plain (no styling)</.link>
+      <.link navigate={~p"/recipes"} variant="default">Styled link</.link>
+
+      <%!-- Speculation --%>
+      <.link navigate={~p"/recipes"} prefetch variant="default">Prefetch on hover</.link>
+      <.link navigate={~p"/recipes"} preload variant="default">Prefetch on mount</.link>
+      <.link navigate={~p"/recipes"} prerender variant="default">Prerender (Chrome)</.link>
+
+      <%!-- External --%>
+      <.link href="https://github.com" external variant="default">GitHub</.link>
+
+      <%!-- Active / disabled --%>
       <.link navigate={~p"/recipes"} active={@live_action == :index}>Recipes</.link>
       <.link navigate={~p"/settings"} disabled={!@can_access}>Settings</.link>
+
+      <%!-- Loading --%>
+      <.link navigate={~p"/slow"} loading variant="default">Submit</.link>
   """
   attr :navigate, :string, default: nil
   attr :patch, :string, default: nil
@@ -54,28 +164,30 @@ defmodule AyaWeb.CoreComponents do
   attr :replace, :boolean, default: false
   attr :method, :string, default: nil
   attr :csrf_token, :any, default: true
-  attr :prefetch, :boolean, default: false, doc: "prefetch on hover/touch"
-  attr :preload, :boolean, default: false, doc: "prefetch immediately on render"
-  attr :prerender, :boolean, default: false, doc: "prerender via Speculation Rules API"
+
+  attr :variant, :string,
+    default: "plain",
+    values: ~w(default muted subtle underline underline-hover plain)
+
+  attr :prefetch, :boolean, default: false, doc: "prefetch on hover/focus"
+  attr :preload, :boolean, default: false, doc: "prefetch immediately on mount"
+  attr :prerender, :boolean, default: false, doc: "prerender on mount (Chrome 109+)"
   attr :external, :boolean, default: false, doc: "open in new tab with noopener"
   attr :active, :boolean, default: false, doc: "whether this link is currently active"
   attr :active_class, :string, default: "text-text font-medium", doc: "class when active"
   attr :disabled, :boolean, default: false, doc: "prevent navigation, dim the link"
-  attr :loading, :boolean, default: false, doc: "show spinner on click"
+  attr :loading, :boolean, default: false, doc: "show spinner on click, hide on nav complete"
   attr :rest, :global, include: ~w(download hreflang referrerpolicy rel target type class id)
   slot :inner_block, required: true
 
   def link(assigns) do
     url = assigns.navigate || assigns.patch || assigns.href
+    url_string = if url, do: to_string(url)
 
-    # Build computed attrs
-    extra_class =
-      [
-        assigns.active && assigns.active_class,
-        assigns.disabled && "opacity-50 pointer-events-none cursor-not-allowed"
-      ]
-      |> Enum.filter(& &1)
-      |> Enum.join(" ")
+    has_speculation? =
+      (assigns.prefetch or assigns.preload or assigns.prerender) and url_string != nil
+
+    needs_hook? = has_speculation? or assigns.loading
 
     # External: override target + rel
     {target, rel} =
@@ -85,17 +197,16 @@ defmodule AyaWeb.CoreComponents do
         {assigns.rest[:target], assigns.rest[:rel]}
       end
 
-    # Prefetch needs a hook + id
-    use_hook = assigns.prefetch && url
-
+    # Stable ID for hook (survives re-renders), or explicit id from caller
     id =
-      if use_hook do
-        assigns.rest[:id] || "pl-#{System.unique_integer([:positive])}"
-      else
-        assigns.rest[:id]
+      cond do
+        assigns.rest[:id] -> assigns.rest[:id]
+        needs_hook? && url_string -> stable_link_id(url_string)
+        needs_hook? -> "lh-#{System.unique_integer([:positive])}"
+        true -> nil
       end
 
-    # Disabled: strip navigation attrs
+    # Disabled: strip navigation attrs, remove from tab order
     {nav, pat, hr} =
       if assigns.disabled do
         {nil, nil, nil}
@@ -103,9 +214,18 @@ defmodule AyaWeb.CoreComponents do
         {assigns.navigate, assigns.patch, assigns.href}
       end
 
+    # Build class list
+    extra_class =
+      [
+        link_variant_class(assigns.variant),
+        assigns.active && assigns.active_class,
+        assigns.disabled && "opacity-50 pointer-events-none cursor-not-allowed"
+      ]
+
     assigns =
       assign(assigns,
         _url: url,
+        _url_string: url_string,
         _nav: nav,
         _pat: pat,
         _hr: hr,
@@ -113,16 +233,11 @@ defmodule AyaWeb.CoreComponents do
         _target: target,
         _rel: rel,
         _id: id,
-        _use_hook: use_hook
+        _has_speculation: has_speculation?,
+        _hook: if(needs_hook?, do: @link_hook_name)
       )
 
     ~H"""
-    <%!-- Resource hints --%>
-    <link :if={@preload && @_url} rel="prefetch" href={@_url} />
-    <script :if={@prerender && @_url} type="speculationrules">
-      {"prerender": [{"urls": ["{@_url}"]}]}
-    </script>
-
     <Phoenix.Component.link
       navigate={@_nav}
       patch={@_pat}
@@ -133,38 +248,172 @@ defmodule AyaWeb.CoreComponents do
       target={@_target}
       rel={@_rel}
       id={@_id}
-      data-prefetch={if @_use_hook, do: @_url}
-      phx-hook={if @_use_hook, do: ".PrefetchLink"}
+      tabindex={if @disabled, do: "-1"}
+      data-spec-url={if @_has_speculation, do: @_url_string}
+      data-spec-eager={if @preload, do: "true"}
+      data-spec-prerender={if @prerender, do: "true"}
+      data-link-loading={if @loading, do: "true"}
+      phx-hook={@_hook}
       aria-disabled={if @disabled, do: "true"}
       aria-current={if @active, do: "page"}
       class={@_extra_class}
       {@rest}
     >
       {render_slot(@inner_block)}
-      <svg :if={@loading} class="link-spinner" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <svg
+        :if={@loading}
+        class="link-spinner hidden animate-spin size-3 ml-1 inline-block align-[-0.125em]"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+      >
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+        />
       </svg>
     </Phoenix.Component.link>
 
-    <script :type={Phoenix.LiveView.ColocatedHook} name=".PrefetchLink">
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".LinkHook">
+      const speculated = new Set()
+      const supportsSpecRules = HTMLScriptElement.supports?.("speculationrules")
+
+      function speculate(url, action = "prefetch") {
+        const key = action + ":" + url
+        if (speculated.has(key)) return
+        speculated.add(key)
+
+        if (supportsSpecRules) {
+          // Chrome 109+: Speculation Rules API — reliable, eagerly executed,
+          // purpose-built for navigation prefetch and prerender.
+          const s = document.createElement("script")
+          s.type = "speculationrules"
+          s.textContent = JSON.stringify({ [action]: [{ urls: [url] }] })
+          document.head.appendChild(s)
+        } else if (action === "prefetch") {
+          // Firefox/Safari: <link rel="prefetch"> fallback.
+          // No cross-browser fallback for prerender — it's Chrome-only.
+          const link = document.createElement("link")
+          link.rel = "prefetch"
+          link.href = url
+          link.as = "document"
+          document.head.appendChild(link)
+        }
+      }
+
+      function setupSpeculation(el) {
+        const url = el.dataset.specUrl
+        if (!url) return
+
+        // Prerender: inject immediately (Chrome-only, falls through silently elsewhere)
+        if (el.dataset.specPrerender != null) {
+          speculate(url, "prerender")
+          return
+        }
+
+        // Eager prefetch (preload): inject immediately
+        if (el.dataset.specEager != null) {
+          speculate(url, "prefetch")
+          return
+        }
+
+        // Hover/focus/touch prefetch
+        const trigger = () => speculate(url, "prefetch")
+        el.addEventListener("mouseenter", trigger, { once: true })
+        el.addEventListener("touchstart", trigger, { once: true, passive: true })
+        el.addEventListener("focusin", trigger, { once: true })
+      }
+
+      function setupLoading(hook) {
+        const spinner = hook.el.querySelector(".link-spinner")
+        if (!spinner) return
+
+        hook._clickHandler = () => spinner.classList.remove("hidden")
+        hook._loadingStop = () => spinner.classList.add("hidden")
+
+        hook.el.addEventListener("click", hook._clickHandler)
+        window.addEventListener("phx:page-loading-stop", hook._loadingStop)
+      }
+
       export default {
         mounted() {
-          const url = this.el.dataset.prefetch
-          if (!url) return
-          let done = false
-          const inject = () => {
-            if (done) return; done = true
-            const l = document.createElement("link")
-            l.rel = "prefetch"; l.href = url; l.as = "document"
-            document.head.appendChild(l)
+          this._specUrl = this.el.dataset.specUrl
+          setupSpeculation(this.el)
+
+          if (this.el.dataset.linkLoading != null) {
+            setupLoading(this)
           }
-          this.el.addEventListener("mouseenter", inject, { once: true })
-          this.el.addEventListener("touchstart", inject, { once: true, passive: true })
+        },
+        updated() {
+          const newUrl = this.el.dataset.specUrl
+          if (newUrl && newUrl !== this._specUrl) {
+            this._specUrl = newUrl
+            setupSpeculation(this.el)
+          }
+        },
+        destroyed() {
+          if (this._loadingStop) {
+            window.removeEventListener("phx:page-loading-stop", this._loadingStop)
+          }
         }
       }
     </script>
     """
+  end
+
+  defp stable_link_id(url) do
+    hash = :crypto.hash(:md5, url) |> Base.encode16(case: :lower) |> binary_part(0, 8)
+    "pl-#{hash}"
+  end
+
+  @link_focus "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+
+  defp link_variant_class("default"),
+    do: ["text-link hover:text-link-hover transition-colors duration-fast", @link_focus]
+
+  defp link_variant_class("muted"),
+    do: ["text-text-secondary hover:text-text transition-colors duration-fast", @link_focus]
+
+  defp link_variant_class("subtle"),
+    do: ["text-text hover:text-link transition-colors duration-fast", @link_focus]
+
+  defp link_variant_class("underline"),
+    do: [
+      "text-link hover:text-link-hover transition-colors duration-fast",
+      @link_focus,
+      link_underline_class(:always)
+    ]
+
+  defp link_variant_class("underline-hover"),
+    do: [
+      "text-link hover:text-link-hover transition-colors duration-fast",
+      @link_focus,
+      link_underline_class(:hover)
+    ]
+
+  defp link_variant_class("plain"), do: nil
+  defp link_variant_class(_), do: nil
+
+  # Pseudo-element underline — swap this function to change animation style.
+  # Uses ::after so width, opacity, thickness, and transforms are all animatable.
+  defp link_underline_class(:hover) do
+    [
+      "relative",
+      "after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-current after:content-['']",
+      "after:origin-left after:scale-x-0 hover:after:scale-x-100",
+      "after:transition-transform after:duration-fast"
+    ]
+  end
+
+  defp link_underline_class(:always) do
+    [
+      "relative",
+      "after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-current after:content-['']",
+      "after:opacity-30 hover:after:opacity-100",
+      "after:transition-opacity after:duration-fast"
+    ]
   end
 
   # ── Flash ──────────────────────────────────────────────────────

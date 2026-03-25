@@ -1,7 +1,7 @@
 defmodule AyaWeb.UI.HoverCard do
   @moduledoc """
   Content card that appears on hover/focus with smooth enter/exit animations.
-  Uses CSS `@starting-style` and `popover` API for native, performant positioning.
+  Uses CSS Anchor Positioning for native, performant placement.
 
   ## Variants
 
@@ -63,7 +63,7 @@ defmodule AyaWeb.UI.HoverCard do
       data-placement={@placement}
       data-delay={@delay}
     >
-      <span class="hc__trigger" data-hc-trigger>
+      <span class="hc__trigger" data-hc-trigger style={"anchor-name: --hc-#{@id}"}>
         {render_slot(@trigger)}
       </span>
       <div
@@ -74,7 +74,9 @@ defmodule AyaWeb.UI.HoverCard do
           "hc__panel--#{@placement}",
           @computed_width
         ]}
+        data-placement={@placement}
         role="tooltip"
+        style={"position-anchor: --hc-#{@id}"}
       >
         <div class="hc__arrow" data-hc-arrow />
         <div class="hc__body">
@@ -88,8 +90,6 @@ defmodule AyaWeb.UI.HoverCard do
         mounted() {
           this.trigger = this.el.querySelector("[data-hc-trigger]")
           this.panel = this.el.querySelector("[data-hc-panel]")
-          this.arrow = this.el.querySelector("[data-hc-arrow]")
-          this.placement = this.el.dataset.placement || "bottom"
           this.delay = parseInt(this.el.dataset.delay) || 200
           this.showTimer = null
           this.hideTimer = null
@@ -99,7 +99,6 @@ defmodule AyaWeb.UI.HoverCard do
             clearTimeout(this.hideTimer)
             if (this.visible) return
             this.showTimer = setTimeout(() => {
-              this.position()
               this.panel.classList.add("hc__panel--visible")
               this.visible = true
             }, this.delay)
@@ -123,59 +122,6 @@ defmodule AyaWeb.UI.HoverCard do
             clearTimeout(this.hideTimer)
           })
           this.panel.addEventListener("mouseleave", hide)
-        },
-
-        position() {
-          const tr = this.trigger.getBoundingClientRect()
-          const gap = 8
-          const pad = 12
-          const vw = window.innerWidth
-          const vh = window.innerHeight
-
-          // Reset to measure natural size
-          this.panel.style.left = ""
-          this.panel.style.top = ""
-          const pw = this.panel.offsetWidth
-          const ph = this.panel.offsetHeight
-
-          let left, top
-
-          switch (this.placement) {
-            case "top":
-              left = tr.left + tr.width / 2 - pw / 2
-              top = tr.top - ph - gap
-              break
-            case "bottom":
-              left = tr.left + tr.width / 2 - pw / 2
-              top = tr.bottom + gap
-              break
-            case "left":
-              left = tr.left - pw - gap
-              top = tr.top + tr.height / 2 - ph / 2
-              break
-            case "right":
-              left = tr.right + gap
-              top = tr.top + tr.height / 2 - ph / 2
-              break
-          }
-
-          // Clamp to viewport
-          left = Math.max(pad, Math.min(left, vw - pw - pad))
-          top = Math.max(pad, Math.min(top, vh - ph - pad))
-
-          this.panel.style.left = `${left}px`
-          this.panel.style.top = `${top}px`
-
-          // Position arrow
-          if (this.arrow) {
-            const tcx = tr.left + tr.width / 2
-            const tcy = tr.top + tr.height / 2
-            if (this.placement === "top" || this.placement === "bottom") {
-              this.arrow.style.left = `${Math.max(12, Math.min(tcx - left, pw - 12))}px`
-            } else {
-              this.arrow.style.top = `${Math.max(12, Math.min(tcy - top, ph - 12))}px`
-            }
-          }
         }
       }
     </script>

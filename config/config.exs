@@ -110,6 +110,8 @@ if config_env() == :dev do
 end
 
 if config_env() == :test do
+  config :bcrypt_elixir, log_rounds: 1
+
   config :aya, AyaWeb.Endpoint,
     http: [ip: {127, 0, 0, 1}, port: 4002],
     secret_key_base: "1b5UayFhgOwDQK/ZJIWGT0Fbh0HilQZw5422G+rTeYHLqmjPkqAgOWrFp9nSIH4w",

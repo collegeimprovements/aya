@@ -1,0 +1,11 @@
+services:
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    environment:
+      - DOZZLE_REMOTE_AGENT=vsgalp0130a.awssg.clsa.com:7007,vsgalp0130b.awssg.clsa.com:7007
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 8080:8080
+    restart: unless-stopped

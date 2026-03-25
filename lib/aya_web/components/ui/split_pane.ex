@@ -69,28 +69,31 @@ defmodule AyaWeb.UI.SplitPane do
             autocomplete="off"
           />
         </div>
-        <button
-          :for={item <- @item}
-          type="button"
-          class="sp__item"
-          data-sp-id={item.id}
-          aria-selected={to_string(item.id == @active_id)}
-        >
-          <img :if={item[:image]} src={item[:image]} alt="" class="sp__thumb" loading="lazy" />
-          <div :if={item[:icon] && !item[:image]} class="sp__icon-box">
-            <.icon name={item[:icon]} class="size-4.5" />
-          </div>
-          <div class="sp__text">
-            <span class="sp__title">{item.title}</span>
-            <span :if={item[:subtitle]} class="sp__subtitle">{item[:subtitle]}</span>
-          </div>
-          <span
-            :if={item[:badge]}
-            class="sp__badge"
+        <div role="tablist">
+          <button
+            :for={item <- @item}
+            type="button"
+            role="tab"
+            class="sp__item"
+            data-sp-id={item.id}
+            aria-selected={to_string(item.id == @active_id)}
           >
-            {item[:badge]}
-          </span>
-        </button>
+            <img :if={item[:image]} src={item[:image]} alt="" class="sp__thumb" loading="lazy" />
+            <div :if={item[:icon] && !item[:image]} class="sp__icon-box">
+              <.icon name={item[:icon]} class="size-4.5" />
+            </div>
+            <div class="sp__text">
+              <span class="sp__title">{item.title}</span>
+              <span :if={item[:subtitle]} class="sp__subtitle">{item[:subtitle]}</span>
+            </div>
+            <span
+              :if={item[:badge]}
+              class="sp__badge"
+            >
+              {item[:badge]}
+            </span>
+          </button>
+        </div>
       </div>
 
       <%!-- Detail panel --%>
