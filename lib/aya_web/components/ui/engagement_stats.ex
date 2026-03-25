@@ -22,6 +22,7 @@ defmodule AyaWeb.UI.EngagementStats do
   attr :likes, :integer, default: 0
   attr :bookmarks, :integer, default: 0
   attr :class, :any, default: nil
+  attr :rest, :global
 
   def engagement_stats(assigns) do
     ~H"""
@@ -33,6 +34,7 @@ defmodule AyaWeb.UI.EngagementStats do
       data-reposts={@reposts}
       data-likes={@likes}
       data-bookmarks={@bookmarks}
+      {@rest}
     >
       <%!-- Views (not toggleable) --%>
       <div class="es__item">

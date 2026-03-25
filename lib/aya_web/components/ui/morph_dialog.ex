@@ -88,11 +88,12 @@ defmodule AyaWeb.UI.MorphDialog do
         data-origin-match-width={if @origin_match_width, do: "true"}
         data-width={@width}
         class="morph-dialog"
+        aria-labelledby={"#{@id}-title"}
       >
         <div data-overlay class="morph-dialog__overlay" />
         <div data-surface class="morph-dialog__surface" style={@width && "--md-width: #{@width}px"}>
           <div data-content class="morph-dialog__content">
-            <div :if={@title != []} class="morph-dialog__title">
+            <div :if={@title != []} id={"#{@id}-title"} class="morph-dialog__title">
               {render_slot(@title)}
             </div>
             <div class="morph-dialog__body">
@@ -136,6 +137,7 @@ defmodule AyaWeb.UI.MorphDialog do
           this.isOpen = false
           this.morphCta = this.el.dataset.morphCta === "true"
           this.ease = "cubic-bezier(0.22, 1.1, 0.36, 1)"
+          this.reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
           this.trigger.addEventListener("click", () => this.open())
           this.dialog.querySelectorAll("[data-morph-close]").forEach(btn => {
@@ -218,12 +220,12 @@ defmodule AyaWeb.UI.MorphDialog do
                 backgroundColor: cs.backgroundColor, color: cs.color,
                 fontSize: cs.fontSize,
               }
-            ], { duration: 350, easing: this.ease, fill: "both" })
+            ], { duration: this.reduceMotion ? 0 : 350, easing: this.ease, fill: "both" })
 
             // Swap label at midpoint if they differ
             const confirmText = this.confirmBtn.textContent.trim()
             if (confirmText !== this.ctaGhost.textContent) {
-              setTimeout(() => { if (this.ctaGhost) this.ctaGhost.textContent = confirmText }, 175)
+              setTimeout(() => { if (this.ctaGhost) this.ctaGhost.textContent = confirmText }, this.reduceMotion ? 0 : 175)
             }
 
             this.confirmBtn.style.visibility = "hidden"
@@ -243,12 +245,12 @@ defmodule AyaWeb.UI.MorphDialog do
               width: `${fin.width}px`, height: `${fin.height}px`,
               borderRadius: "20px"
             }
-          ], { duration: 350, easing: this.ease, fill: "forwards" })
+          ], { duration: this.reduceMotion ? 0 : 350, easing: this.ease, fill: "forwards" })
 
           // Backdrop fades in
           this.overlay.animate(
             [{ opacity: 0 }, { opacity: 1 }],
-            { duration: 250, easing: "ease-out", fill: "both" }
+            { duration: this.reduceMotion ? 0 : 250, easing: "ease-out", fill: "both" }
           )
 
           anim.onfinish = () => {
@@ -261,7 +263,7 @@ defmodule AyaWeb.UI.MorphDialog do
                 { opacity: 0, transform: "translateY(12px)" },
                 { opacity: 1, transform: "translateY(0)" }
               ],
-              { duration: 180, easing: this.ease, fill: "both" }
+              { duration: this.reduceMotion ? 0 : 180, easing: this.ease, fill: "both" }
             ).onfinish = (e) => e.target.cancel()
 
             // Clean up CTA ghost (remove before cancel to prevent position snap flash)
@@ -314,12 +316,12 @@ defmodule AyaWeb.UI.MorphDialog do
                 backgroundColor: ts.backgroundColor, color: ts.color,
                 fontSize: ts.fontSize,
               }
-            ], { duration: 300, easing: this.ease, fill: "both" })
+            ], { duration: this.reduceMotion ? 0 : 300, easing: this.ease, fill: "both" })
 
             // Swap label at midpoint
             const triggerText = this.trigger.textContent.trim()
             if (triggerText !== this.ctaGhost.textContent) {
-              setTimeout(() => { if (this.ctaGhost) this.ctaGhost.textContent = triggerText }, 150)
+              setTimeout(() => { if (this.ctaGhost) this.ctaGhost.textContent = triggerText }, this.reduceMotion ? 0 : 150)
             }
           }
 
@@ -329,7 +331,7 @@ defmodule AyaWeb.UI.MorphDialog do
               { opacity: 1, transform: "translateY(0)" },
               { opacity: 0, transform: "translateY(60px)" }
             ],
-            { duration: 200, easing: "ease-in", fill: "forwards" }
+            { duration: this.reduceMotion ? 0 : 200, easing: "ease-in", fill: "forwards" }
           )
 
           // Surface morphs back to trigger rect — also fades out
@@ -345,18 +347,18 @@ defmodule AyaWeb.UI.MorphDialog do
               width: `${tr.width}px`, height: `${tr.height}px`,
               borderRadius: `${tr.height / 2}px`, opacity: 0
             }
-          ], { duration: 280, easing: this.ease, fill: "both" })
+          ], { duration: this.reduceMotion ? 0 : 280, easing: this.ease, fill: "both" })
 
           // Backdrop fades out
           this.overlay.animate(
             [{ opacity: 1 }, { opacity: 0 }],
-            { duration: 250, easing: "ease-out", fill: "both" }
+            { duration: this.reduceMotion ? 0 : 250, easing: "ease-out", fill: "both" }
           )
 
           // Show trigger early (surface is fading out, so trigger fades in underneath)
           setTimeout(() => {
             this.trigger.style.visibility = ""
-          }, 150)
+          }, this.reduceMotion ? 0 : 150)
 
           anim.onfinish = () => {
             this.dialog.close()

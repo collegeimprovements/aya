@@ -113,15 +113,48 @@ defmodule AyaWeb.UI.HoverCard do
             }, 150)
           }
 
-          // Keep open when hovering panel
-          this.trigger.addEventListener("mouseenter", show)
-          this.trigger.addEventListener("mouseleave", hide)
-          this.trigger.addEventListener("focusin", show)
-          this.trigger.addEventListener("focusout", hide)
-          this.panel.addEventListener("mouseenter", () => {
-            clearTimeout(this.hideTimer)
-          })
-          this.panel.addEventListener("mouseleave", hide)
+          const isTouchOnly = window.matchMedia("(hover: none)").matches
+
+          if (isTouchOnly) {
+            // Touch devices: tap trigger to toggle, tap outside to close
+            this._onTriggerClick = (e) => {
+              e.preventDefault()
+              if (this.visible) {
+                this.panel.classList.remove("hc__panel--visible")
+                this.visible = false
+              } else {
+                this.panel.classList.add("hc__panel--visible")
+                this.visible = true
+              }
+            }
+            this.trigger.addEventListener("click", this._onTriggerClick)
+
+            this._onDocClick = (e) => {
+              if (this.visible && !this.el.contains(e.target)) {
+                this.panel.classList.remove("hc__panel--visible")
+                this.visible = false
+              }
+            }
+            document.addEventListener("click", this._onDocClick)
+          } else {
+            // Mouse devices: hover behavior
+            this.trigger.addEventListener("mouseenter", show)
+            this.trigger.addEventListener("mouseleave", hide)
+            this.trigger.addEventListener("focusin", show)
+            this.trigger.addEventListener("focusout", hide)
+            this.panel.addEventListener("mouseenter", () => {
+              clearTimeout(this.hideTimer)
+            })
+            this.panel.addEventListener("mouseleave", hide)
+          }
+        },
+
+        destroyed() {
+          clearTimeout(this.showTimer)
+          clearTimeout(this.hideTimer)
+          if (this._onDocClick) {
+            document.removeEventListener("click", this._onDocClick)
+          }
         }
       }
     </script>

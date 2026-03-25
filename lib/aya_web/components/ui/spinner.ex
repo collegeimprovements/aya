@@ -25,6 +25,7 @@ defmodule AyaWeb.UI.Spinner do
   attr :color, :string, default: "primary", values: ~w(primary secondary current muted)
   attr :label, :string, default: "Loading..."
   attr :class, :any, default: nil
+  attr :rest, :global
 
   def spinner(assigns) do
     ~H"""
@@ -39,6 +40,7 @@ defmodule AyaWeb.UI.Spinner do
       fill="none"
       viewBox="0 0 24 24"
       aria-hidden="true"
+      {@rest}
     >
       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />

@@ -10,7 +10,21 @@ import MarkdownEditor from "./hooks/markdown_editor_hook"
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken},
+  params: {
+    _csrf_token: csrfToken,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    locale: navigator.language,
+    user_agent: navigator.userAgent,
+    viewport_width: window.innerWidth,
+    viewport_height: window.innerHeight,
+    device_pixel_ratio: window.devicePixelRatio,
+    platform: navigator.userAgentData?.platform || navigator.platform,
+    touch: "ontouchstart" in window || navigator.maxTouchPoints > 0,
+    online: navigator.onLine,
+    color_scheme: window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+    reduced_motion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    connection: navigator.connection?.effectiveType,
+  },
   hooks: {...colocatedHooks, ECharts, RichEditor, MarkdownEditor},
 })
 

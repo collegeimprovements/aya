@@ -21,6 +21,7 @@ Aya is a comprehensive food and food science application: Latest Food News, Reci
 11. [Spec-Driven Development](#spec-driven-development)
 12. [Accessibility (a11y)](#accessibility-a11y)
 13. [Best Practices](#best-practices)
+14. [Browser Context](#browser-context)
 
 ---
 
@@ -6234,6 +6235,127 @@ slot :inner_block
 - **Never** use `changeset[:field]` — use `Ecto.Changeset.get_field/2`
 - **Never** use `String.to_atom/1` on user input
 - **Never** use `Enum.each` in templates — use `for` comprehensions
+- **Never** use `Timex` — use Elixir's built-in `DateTime`, `Calendar`, and `Calendar.strftime/3`
+- **Never** use `Floki` — use `Phoenix.HTML` or `LazyHTML` (already a dependency)
+
+## Browser Context
+
+`AyaWeb.Plugs.BrowserContext` collects browser/device data in two phases:
+
+1. **HTTP phase** (Plug) — parses User-Agent from request headers. Available on first render.
+2. **JS phase** (LiveSocket params) — sends timezone, viewport, touch, locale, color scheme, etc. Available after WebSocket connects.
+
+### Setup
+
+Already configured:
+- Plug in `:browser` pipeline (`router.ex`)
+- JS params in `LiveSocket` constructor (`app.js`)
+- Session access in endpoint (`endpoint.ex`)
+
+### Usage in LiveView
+
+```elixir
+def mount(_params, _session, socket) do
+  browser = AyaWeb.Plugs.BrowserContext.from_socket(socket)
+  {:ok, assign(socket, browser: browser)}
+end
+```
+
+### Usage in controllers
+
+```elixir
+def show(conn, _params) do
+  browser = conn.assigns[:browser_context]
+  # browser.mobile => true
+end
+```
+
+### Available fields
+
+| Field                | Source  | Type    | Example              |
+|----------------------|---------|---------|----------------------|
+| `timezone`           | JS      | string  | `"Asia/Hong_Kong"`   |
+| `locale`             | JS      | string  | `"en-US"`            |
+| `viewport_width`     | JS      | integer | `390`                |
+| `viewport_height`    | JS      | integer | `844`                |
+| `device_pixel_ratio` | JS      | float   | `3.0`                |
+| `platform`           | JS      | string  | `"macOS"`            |
+| `touch`              | JS      | boolean | `true`               |
+| `online`             | JS      | boolean | `true`               |
+| `color_scheme`       | JS      | string  | `"dark"` / `"light"` |
+| `reduced_motion`     | JS      | boolean | `false`              |
+| `connection`         | JS      | string  | `"4g"`, `nil`        |
+| `user_agent`         | HTTP+JS | string  | full UA string       |
+| `mobile`             | HTTP    | boolean | `true`               |
+| `bot`                | HTTP    | boolean | `false`              |
+| `bot_type`           | HTTP    | string/nil | `"search"`, `"ai"`, `nil` |
+| `browser`            | HTTP    | string  | `"Chrome"`           |
+| `os`                 | HTTP    | string  | `"macOS"`            |
+
+### Bot detection
+
+`bot` is a boolean. `bot_type` categorizes the bot:
+
+| `bot_type`   | Detects                          | Examples                                   |
+|--------------|----------------------------------|--------------------------------------------|
+| `"search"`   | Search engine crawlers            | Googlebot, Bingbot, DuckDuckBot, Yandex    |
+| `"social"`   | Social media preview crawlers     | Facebook, Twitter, LinkedIn, Slack, Discord |
+| `"ai"`       | AI/LLM scrapers & training bots   | GPTBot, ClaudeBot, CCBot, PerplexityBot    |
+| `"monitor"`  | Uptime/health checks              | UptimeRobot, Pingdom, Datadog, NewRelic    |
+| `"headless"` | Headless browsers & automation    | HeadlessChrome, Puppeteer, Playwright      |
+| `"feed"`     | RSS/Atom feed readers             | Feedly, Feedbin, NewsBlur, Inoreader       |
+| `"other"`    | Generic bots (catch-all)          | Anything with "bot", "crawl", "spider"     |
+| `nil`        | Real browser — not a bot          |                                            |
+
+### Common patterns
+
+```elixir
+# Timezone-aware timestamps (use Elixir's Calendar, NOT Timex)
+DateTime.shift_zone!(datetime, browser.timezone)
+
+# Responsive server rendering
+if browser.mobile, do: render_compact(assigns), else: render_full(assigns)
+
+# Skip animations
+if browser.reduced_motion, do: "duration-0", else: "duration-300"
+
+# Slow connection handling
+if browser.connection in ["slow-2g", "2g"], do: load_lite_version()
+
+# Serve static HTML to search engine crawlers
+if browser.bot_type == "search", do: render_seo_page(assigns)
+
+# Block AI scrapers from scraping content
+if browser.bot_type == "ai", do: send_resp(conn, 403, "Forbidden")
+
+# Skip analytics for monitoring bots
+if browser.bot_type == "monitor", do: skip_analytics()
+
+# Rate-limit headless browsers/scrapers
+if browser.bot_type == "headless", do: apply_strict_rate_limit()
+
+# Allow social crawlers for link previews
+if browser.bot_type == "social", do: render_og_preview(assigns)
+```
+
+### Static vs connected render
+
+On the **static render** (before WebSocket), only HTTP fields are available.
+JS fields are `nil`. Once the WebSocket connects and `mount/3` runs with
+`connected?(socket) == true`, all fields are populated. Guard accordingly:
+
+```elixir
+def mount(_params, _session, socket) do
+  browser = AyaWeb.Plugs.BrowserContext.from_socket(socket)
+  socket = assign(socket, browser: browser)
+
+  # JS fields are nil on static render — use fallback
+  timezone = browser.timezone || "UTC"
+  {:ok, assign(socket, timezone: timezone)}
+end
+```
+
+---
 
 <!-- usage-rules-start -->
 

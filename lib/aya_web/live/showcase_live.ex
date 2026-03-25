@@ -1,6 +1,32 @@
 defmodule AyaWeb.ShowcaseLive do
   use AyaWeb, :live_view
 
+  @sample_markdown """
+  # Sourdough Starter
+
+  A **wild yeast** culture used to leaven bread.
+
+  ## Feeding Schedule
+
+  - Morning: 1:1:1 ratio (starter:flour:water)
+  - Evening: discard half, feed again
+
+  ## Tips
+
+  > Keep at room temperature (70-75°F) for an active starter.
+  > Refrigerate if not baking daily.
+
+  ### Signs of readiness
+
+  1. Doubles in size within 4-6 hours
+  2. Smells pleasantly sour
+  3. Passes the `float test`
+
+  ---
+
+  For more details, see [The Bread Baker's Guide](https://example.com).
+  """
+
   @impl true
   def mount(_params, _session, socket) do
     form =
@@ -38,6 +64,7 @@ defmodule AyaWeb.ShowcaseLive do
         grouped_options: sample_grouped_options(),
         tag_options: sample_tag_options(),
         rich_colors: false,
+        sample_markdown: @sample_markdown,
         tab_mode: :url,
         dt_sort_by: nil,
         dt_sort_dir: "asc",
@@ -2561,7 +2588,7 @@ defmodule AyaWeb.ShowcaseLive do
                   name="markdown"
                   label="Recipe notes"
                   placeholder="Write markdown..."
-                  value="# Sourdough Starter\n\nA **wild yeast** culture used to leaven bread.\n\n## Feeding Schedule\n\n- Morning: 1:1:1 ratio (starter:flour:water)\n- Evening: discard half, feed again\n\n## Tips\n\n> Keep at room temperature (70-75°F) for an active starter.\n> Refrigerate if not baking daily.\n\n### Signs of readiness\n\n1. Doubles in size within 4-6 hours\n2. Smells pleasantly sour\n3. Passes the `float test`\n\n---\n\nFor more details, see [The Bread Baker's Guide](https://example.com)."
+                  value={@sample_markdown}
                 />
               </div>
             </div>

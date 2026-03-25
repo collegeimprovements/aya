@@ -139,6 +139,12 @@ defmodule AyaWeb.UI.CommandPalette do
           this._observer = observer;
         },
 
+        updated() {
+          // Re-index items in case the list changed server-side
+          const input = this.el.querySelector(".command-palette__input");
+          if (input) this.filterItems(input.value);
+        },
+
         filterItems(query) {
           const results = this.el.querySelector(".command-palette__results");
           const empty = this.el.querySelector(".command-palette__empty");

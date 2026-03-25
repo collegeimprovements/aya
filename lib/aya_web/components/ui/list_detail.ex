@@ -91,22 +91,27 @@ defmodule AyaWeb.UI.ListDetail do
           this.closeBtn = this.el.querySelector("[data-ld-close]")
           this.activeId = null
           this.ease = "cubic-bezier(0.22, 1.1, 0.36, 1)"
+          this.reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
           this.dir = this.el.dataset.direction || "right"
           this.slideIn = this.dir === "left" ? "translateX(-20px)" : "translateX(20px)"
           this.contentSlide = this.dir === "left" ? "translateX(-12px)" : "translateX(12px)"
 
+          this._itemHandlers = []
           this.items.forEach(item => {
-            item.addEventListener("click", () => {
+            const handler = () => {
               const id = item.dataset.ldId
               if (id === this.activeId) {
                 this.collapse()
               } else {
                 this.expand(id)
               }
-            })
+            }
+            this._itemHandlers.push({ item, handler })
+            item.addEventListener("click", handler)
           })
 
-          this.closeBtn.addEventListener("click", () => this.collapse())
+          this._closeHandler = () => this.collapse()
+          this.closeBtn.addEventListener("click", this._closeHandler)
         },
 
         expand(id) {
@@ -125,7 +130,7 @@ defmodule AyaWeb.UI.ListDetail do
                 { transform: this.slideIn, opacity: 0, width: "0px" },
                 { transform: "none", opacity: 1, width: "" }
               ],
-              { duration: 300, easing: this.ease, fill: "both" }
+              { duration: this.reduceMotion ? 0 : 300, easing: this.ease, fill: "both" }
             ).onfinish = (e) => e.target.cancel()
           }
 
@@ -136,7 +141,7 @@ defmodule AyaWeb.UI.ListDetail do
           if (oldPanel) {
             oldPanel.animate(
               [{ opacity: 1 }, { opacity: 0 }],
-              { duration: 80, fill: "forwards" }
+              { duration: this.reduceMotion ? 0 : 80, fill: "forwards" }
             ).onfinish = () => {
               oldPanel.hidden = true
               oldPanel.getAnimations().forEach(a => a.cancel())
@@ -144,7 +149,7 @@ defmodule AyaWeb.UI.ListDetail do
                 newPanel.hidden = false
                 newPanel.animate(
                   [{ opacity: 0, transform: this.contentSlide }, { opacity: 1, transform: "none" }],
-                  { duration: 200, easing: this.ease, fill: "forwards" }
+                  { duration: this.reduceMotion ? 0 : 200, easing: this.ease, fill: "forwards" }
                 ).onfinish = (e) => e.target.cancel()
               }
             }
@@ -152,7 +157,7 @@ defmodule AyaWeb.UI.ListDetail do
             newPanel.hidden = false
             newPanel.animate(
               [{ opacity: 0, transform: this.contentSlide }, { opacity: 1, transform: "none" }],
-              { duration: 200, easing: this.ease, fill: "forwards" }
+              { duration: this.reduceMotion ? 0 : 200, easing: this.ease, fill: "forwards" }
             ).onfinish = (e) => e.target.cancel()
           }
 
@@ -167,12 +172,23 @@ defmodule AyaWeb.UI.ListDetail do
               { transform: "none", opacity: 1 },
               { transform: this.slideIn, opacity: 0 }
             ],
-            { duration: 200, easing: "ease-in", fill: "forwards" }
+            { duration: this.reduceMotion ? 0 : 200, easing: "ease-in", fill: "forwards" }
           ).onfinish = () => {
             this.detail.hidden = true
             this.detail.getAnimations().forEach(a => a.cancel())
             this.panels.forEach(p => { p.hidden = true; p.getAnimations().forEach(a => a.cancel()) })
             this.activeId = null
+          }
+        },
+
+        destroyed() {
+          if (this._itemHandlers) {
+            this._itemHandlers.forEach(({ item, handler }) => {
+              item.removeEventListener("click", handler)
+            })
+          }
+          if (this.closeBtn && this._closeHandler) {
+            this.closeBtn.removeEventListener("click", this._closeHandler)
           }
         }
       }

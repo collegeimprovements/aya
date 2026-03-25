@@ -74,7 +74,8 @@ defmodule AyaWeb.UI.MultiStep do
           this.backBtn = el.querySelector("[data-back]")
           this.contBtn = el.querySelector("[data-continue]")
           this.busy = false
-          this.dur = 500
+          this.reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          this.dur = this.reduceMotion ? 0 : 500
           this.ease = "cubic-bezier(0.32, 0.72, 0, 1)"
 
           // Set initial explicit height for future transitions

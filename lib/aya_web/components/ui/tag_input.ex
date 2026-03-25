@@ -145,7 +145,7 @@ defmodule AyaWeb.UI.TagInput do
       <div
         :if={@filtered != [] && @focused}
         style={"position-anchor: --ti-#{@id}"}
-        class="fixed z-50 mt-1 max-h-48 overflow-auto rounded-md border border-border bg-surface shadow-lg [top:anchor(bottom)] [left:anchor(start)] [width:anchor-size(width)] [position-try-fallbacks:flip-block]"
+        class="fixed z-dropdown mt-1 max-h-48 overflow-auto rounded-md border border-border bg-surface shadow-lg [top:anchor(bottom)] [left:anchor(start)] [width:anchor-size(width)] [position-try-fallbacks:flip-block]"
       >
         <button
           :for={suggestion <- @filtered}
@@ -171,10 +171,11 @@ defmodule AyaWeb.UI.TagInput do
             if (!input) return
 
             // Click container to focus input
-            container.addEventListener("click", () => input.focus())
+            this._onContainerClick = () => input.focus()
+            container.addEventListener("click", this._onContainerClick)
 
             // Track input value and send key events with value
-            input.addEventListener("keydown", (e) => {
+            this._onKeydown = (e) => {
               if (e.key === "Enter") {
                 e.preventDefault()
                 const val = input.value.trim()
@@ -187,15 +188,17 @@ defmodule AyaWeb.UI.TagInput do
               } else if (e.key === "Backspace" && input.value === "") {
                 this.pushEventTo(this.el, "remove_last", {})
               }
-            })
+            }
+            input.addEventListener("keydown", this._onKeydown)
 
             // Track typing for suggestions
-            input.addEventListener("input", () => {
+            this._onInput = () => {
               this.pushEventTo(this.el, "search", { value: input.value })
-            })
+            }
+            input.addEventListener("input", this._onInput)
 
             // Paste: split by comma and add as tags
-            input.addEventListener("paste", (e) => {
+            this._onPaste = (e) => {
               const text = (e.clipboardData || window.clipboardData).getData("text")
               if (text.includes(",")) {
                 e.preventDefault()
@@ -205,7 +208,22 @@ defmodule AyaWeb.UI.TagInput do
                   input.value = ""
                 }
               }
-            })
+            }
+            input.addEventListener("paste", this._onPaste)
+
+            this._input = input
+            this._container = container
+          },
+
+          destroyed() {
+            if (this._input) {
+              this._input.removeEventListener("keydown", this._onKeydown)
+              this._input.removeEventListener("input", this._onInput)
+              this._input.removeEventListener("paste", this._onPaste)
+            }
+            if (this._container) {
+              this._container.removeEventListener("click", this._onContainerClick)
+            }
           }
         }
       </script>

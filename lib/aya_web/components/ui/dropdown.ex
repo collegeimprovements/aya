@@ -47,7 +47,7 @@ defmodule AyaWeb.UI.Dropdown do
         id={"#{@id}-panel"}
         data-dropdown-panel
         class={[
-          "fixed z-[9999] min-w-[180px]",
+          "fixed z-toast min-w-[180px]",
           "rounded-lg bg-surface border border-border shadow-lg",
           "p-1 opacity-0 scale-95 pointer-events-none",
           "transition-[opacity,transform] duration-150 ease-out",
@@ -104,6 +104,16 @@ defmodule AyaWeb.UI.Dropdown do
             })
 
             this._hide = hide
+          },
+
+          updated() {
+            // Re-query items if the panel content changed server-side
+            const panel = this.el.querySelector("[data-dropdown-panel]");
+            if (panel) {
+              panel.querySelectorAll("a, button").forEach(item => {
+                item.addEventListener("click", () => this._hide?.(), { once: true });
+              });
+            }
           },
 
           destroyed() {

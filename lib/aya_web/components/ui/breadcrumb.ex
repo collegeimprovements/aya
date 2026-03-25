@@ -15,6 +15,7 @@ defmodule AyaWeb.UI.Breadcrumb do
   import AyaWeb.CoreComponents, only: [icon: 1]
 
   attr :class, :any, default: nil
+  attr :rest, :global
 
   slot :crumb, required: true do
     attr :navigate, :string
@@ -25,7 +26,7 @@ defmodule AyaWeb.UI.Breadcrumb do
 
   def breadcrumb(assigns) do
     ~H"""
-    <nav aria-label="Breadcrumb" class={@class}>
+    <nav aria-label="Breadcrumb" class={@class} {@rest}>
       <ol class="flex items-center gap-1.5 text-sm">
         <li :for={{crumb, index} <- Enum.with_index(@crumb)} class="flex items-center gap-1.5">
           <.icon

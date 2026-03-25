@@ -21,13 +21,14 @@ defmodule AyaWeb.UI.EmptyState do
   attr :icon, :string, default: "hero-inbox"
   attr :title, :string, required: true
   attr :class, :any, default: nil
+  attr :rest, :global
 
   slot :description
   slot :action
 
   def empty_state(assigns) do
     ~H"""
-    <div class={["flex flex-col items-center justify-center py-16 text-center", @class]}>
+    <div class={["flex flex-col items-center justify-center py-16 text-center", @class]} {@rest}>
       <div class="size-12 rounded-full bg-surface-alt flex items-center justify-center mb-4">
         <.icon name={@icon} class="size-6 text-text-muted" />
       </div>

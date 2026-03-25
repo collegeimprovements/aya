@@ -280,6 +280,10 @@ defmodule AyaWeb.UI.SearchSelect do
             const list = this.el.querySelector("[role=listbox] > div:last-child")
             const active = list?.querySelector("[data-highlighted]")
             if (active) active.scrollIntoView({ block: "nearest" })
+          },
+          destroyed() {
+            // No document-level listeners to remove; element-scoped listeners
+            // are cleaned up automatically when the DOM node is removed.
           }
         }
       </script>

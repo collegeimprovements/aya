@@ -24,6 +24,7 @@ defmodule AyaWeb.UI.Progress do
   attr :label, :string, default: nil
   attr :show_value, :boolean, default: false
   attr :class, :any, default: nil
+  attr :rest, :global
 
   def progress(assigns) do
     pct = min(100, max(0, round(assigns.value / assigns.max * 100)))
@@ -37,6 +38,7 @@ defmodule AyaWeb.UI.Progress do
       aria-valuemin="0"
       aria-valuemax="100"
       aria-label={@label || "Progress"}
+      {@rest}
     >
       <div :if={@label || @show_value} class="flex items-center justify-between mb-1.5">
         <span :if={@label} class="text-sm font-medium text-text">{@label}</span>

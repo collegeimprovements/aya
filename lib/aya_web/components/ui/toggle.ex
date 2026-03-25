@@ -64,7 +64,7 @@ defmodule AyaWeb.UI.Toggle do
         ]} />
         <%!-- Knob: centered vertically with equal inset --%>
         <span class={[
-          "absolute top-[3px] left-[3px] rounded-full bg-white shadow-sm",
+          "absolute top-[3px] left-[3px] rounded-full bg-surface shadow-sm",
           "transition-transform duration-fast ease-out",
           knob_size(@size)
         ]} />

@@ -122,7 +122,7 @@ defmodule AyaWeb.UI.Pagination do
   end
 
   defp page_button_base do
-    "min-w-9 h-9 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring cursor-pointer"
+    "min-w-11 h-11 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring cursor-pointer"
   end
 
   defp page_button_state(true, _), do: "bg-primary text-primary-text"

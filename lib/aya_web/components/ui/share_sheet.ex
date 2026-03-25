@@ -56,14 +56,20 @@ defmodule AyaWeb.UI.ShareSheet do
 
       <div data-root class="ss__root" hidden>
         <button data-backdrop type="button" class="ss__backdrop" aria-label="Close sheet" />
-        <section data-sheet class="ss" role="dialog" aria-modal="true" aria-label={@title}>
+        <section
+          data-sheet
+          class="ss"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={"#{@id}-title"}
+        >
           <div class="ss__handle-row"><div class="ss__handle" /></div>
           <div class="ss__close-row">
             <button type="button" data-close class="ss__close" aria-label="Close">
               <.icon name="hero-x-mark" class="size-3" />
             </button>
           </div>
-          <h3 class="ss__title">{@title}</h3>
+          <h3 id={"#{@id}-title"} class="ss__title">{@title}</h3>
           <div :if={@contact != []} class="ss__contacts">
             <button :for={c <- @contact} type="button" data-close class="ss__contact">
               <div class="ss__avatar" style={"background-color: #{c.color}"}>{c.initial}</div>

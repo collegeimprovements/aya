@@ -21,6 +21,9 @@ defmodule AyaWeb.UI.DatePicker do
   attr :min, :string, default: nil
   attr :max, :string, default: nil
   attr :disabled, :boolean, default: false
+  attr :icon_calendar, :string, default: "hero-calendar", doc: "calendar trigger icon"
+  attr :icon_prev, :string, default: "hero-chevron-left-mini", doc: "previous month icon"
+  attr :icon_next, :string, default: "hero-chevron-right-mini", doc: "next month icon"
   attr :class, :any, default: nil
 
   def date_picker(assigns) do
@@ -58,7 +61,7 @@ defmodule AyaWeb.UI.DatePicker do
         >
           {if @value && @value != "", do: format_display(@value), else: @placeholder}
         </span>
-        <.icon name="hero-calendar" class="size-4 text-text-muted shrink-0" />
+        <.icon name={@icon_calendar} class="size-4 text-text-muted shrink-0" />
       </button>
 
       <%!-- Calendar dropdown --%>
@@ -76,7 +79,7 @@ defmodule AyaWeb.UI.DatePicker do
             class="p-1 rounded-md hover:bg-surface-hover transition-colors cursor-pointer"
             aria-label="Previous month"
           >
-            <.icon name="hero-chevron-left-mini" class="size-5 text-text-secondary" />
+            <.icon name={@icon_prev} class="size-5 text-text-secondary" />
           </button>
           <span data-month-label class="text-sm font-semibold text-text" />
           <button
@@ -85,7 +88,7 @@ defmodule AyaWeb.UI.DatePicker do
             class="p-1 rounded-md hover:bg-surface-hover transition-colors cursor-pointer"
             aria-label="Next month"
           >
-            <.icon name="hero-chevron-right-mini" class="size-5 text-text-secondary" />
+            <.icon name={@icon_next} class="size-5 text-text-secondary" />
           </button>
         </div>
         <%!-- Day headers --%>
@@ -238,6 +241,29 @@ defmodule AyaWeb.UI.DatePicker do
             })
 
             this._hide = hide
+            this._syncValue = () => {
+              const newVal = hidden.value
+              if (newVal && newVal !== "") {
+                const newDate = new Date(newVal + "T00:00:00")
+                if (!selected || newDate.getTime() !== selected.getTime()) {
+                  selected = newDate
+                  viewDate = new Date(selected)
+                  display.textContent = formatDisplay(selected)
+                  display.className = "text-text"
+                  if (open) render()
+                }
+              } else if (selected) {
+                selected = null
+                display.textContent = display.parentElement?.dataset?.placeholder || "Pick a date"
+                display.className = "text-text-muted"
+                if (open) render()
+              }
+            }
+          },
+
+          updated() {
+            // Sync selected date if the server pushed a new value
+            this._syncValue?.()
           },
 
           destroyed() { this._hide?.() }

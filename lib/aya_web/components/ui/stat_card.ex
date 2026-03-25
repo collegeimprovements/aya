@@ -20,17 +20,21 @@ defmodule AyaWeb.UI.StatCard do
   attr :trend_direction, :atom, default: nil, values: [nil, :up, :down, :neutral]
   attr :icon, :string, default: nil
   attr :class, :any, default: nil
+  attr :rest, :global
 
   slot :footer
 
   def stat_card(assigns) do
     ~H"""
-    <div class={[
-      "rounded-lg bg-surface p-5",
-      "shadow-border transition-shadow duration-normal",
-      "hover:shadow-border-hover",
-      @class
-    ]}>
+    <div
+      class={[
+        "rounded-lg bg-surface p-5",
+        "shadow-border transition-shadow duration-normal",
+        "hover:shadow-border-hover",
+        @class
+      ]}
+      {@rest}
+    >
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
           <p class="text-sm font-medium text-text-secondary truncate">{@label}</p>

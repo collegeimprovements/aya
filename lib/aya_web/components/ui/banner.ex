@@ -21,8 +21,10 @@ defmodule AyaWeb.UI.Banner do
 
   attr :id, :string, default: nil
   attr :variant, :atom, default: :info, values: [:info, :success, :warning, :error]
+  attr :icon, :string, default: nil, doc: "override the variant's default icon"
   attr :dismissible, :boolean, default: true
   attr :class, :any, default: nil
+  attr :rest, :global
 
   slot :inner_block, required: true
   slot :action
@@ -42,8 +44,9 @@ defmodule AyaWeb.UI.Banner do
         banner_style(@variant),
         @class
       ]}
+      {@rest}
     >
-      <.icon name={banner_icon(@variant)} class="size-5 shrink-0" />
+      <.icon name={@icon || banner_icon(@variant)} class="size-5 shrink-0" />
       <div class="flex-1 min-w-0">
         {render_slot(@inner_block)}
       </div>

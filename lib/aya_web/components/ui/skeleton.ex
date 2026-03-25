@@ -40,10 +40,11 @@ defmodule AyaWeb.UI.Skeleton do
   attr :rows, :integer, default: 3, doc: "number of table/list rows"
   attr :cols, :integer, default: 4, doc: "number of table columns"
   attr :class, :any, default: nil
+  attr :rest, :global
 
   def skeleton(%{type: "text"} = assigns) do
     ~H"""
-    <div class={["space-y-2", @class]}>
+    <div class={["space-y-2", @class]} {@rest}>
       <div
         :for={i <- 1..@lines}
         class={[
@@ -57,7 +58,7 @@ defmodule AyaWeb.UI.Skeleton do
 
   def skeleton(%{type: "card"} = assigns) do
     ~H"""
-    <div class={["rounded-lg border border-border p-6 space-y-4", @class]}>
+    <div class={["rounded-lg border border-border p-6 space-y-4", @class]} {@rest}>
       <div class="skeleton-pulse rounded h-40 w-full" />
       <div class="space-y-2">
         <div class="skeleton-pulse rounded h-5 w-2/3" />
@@ -70,19 +71,19 @@ defmodule AyaWeb.UI.Skeleton do
 
   def skeleton(%{type: "avatar"} = assigns) do
     ~H"""
-    <div class={["skeleton-pulse rounded-full size-10", @class]} />
+    <div class={["skeleton-pulse rounded-full size-10", @class]} {@rest} />
     """
   end
 
   def skeleton(%{type: "image"} = assigns) do
     ~H"""
-    <div class={["skeleton-pulse rounded-lg aspect-video w-full", @class]} />
+    <div class={["skeleton-pulse rounded-lg aspect-video w-full", @class]} {@rest} />
     """
   end
 
   def skeleton(%{type: "table"} = assigns) do
     ~H"""
-    <div class={["rounded-lg border border-border overflow-hidden", @class]}>
+    <div class={["rounded-lg border border-border overflow-hidden", @class]} {@rest}>
       <div class="bg-surface-alt border-b border-border px-4 py-3 flex gap-4">
         <div :for={_ <- 1..@cols} class="skeleton-pulse rounded h-4 flex-1" />
       </div>
@@ -95,7 +96,7 @@ defmodule AyaWeb.UI.Skeleton do
 
   def skeleton(%{type: "profile"} = assigns) do
     ~H"""
-    <div class={["flex flex-col items-center gap-3", @class]}>
+    <div class={["flex flex-col items-center gap-3", @class]} {@rest}>
       <div class="skeleton-pulse rounded-full size-16" />
       <div class="skeleton-pulse rounded h-5 w-32" />
       <div class="skeleton-pulse rounded h-3 w-48" />
@@ -119,7 +120,7 @@ defmodule AyaWeb.UI.Skeleton do
 
   def skeleton(%{type: "comment"} = assigns) do
     ~H"""
-    <div class={["space-y-4", @class]}>
+    <div class={["space-y-4", @class]} {@rest}>
       <div :for={_ <- 1..@rows} class="flex gap-3">
         <div class="skeleton-pulse rounded-full size-8 shrink-0" />
         <div class="flex-1 space-y-2">
@@ -137,7 +138,7 @@ defmodule AyaWeb.UI.Skeleton do
 
   def skeleton(%{type: "feed"} = assigns) do
     ~H"""
-    <div class={["rounded-lg border border-border overflow-hidden", @class]}>
+    <div class={["rounded-lg border border-border overflow-hidden", @class]} {@rest}>
       <div class="p-4 flex items-center gap-3">
         <div class="skeleton-pulse rounded-full size-10" />
         <div class="flex-1 space-y-1.5">
@@ -163,7 +164,7 @@ defmodule AyaWeb.UI.Skeleton do
 
   def skeleton(%{type: "stats"} = assigns) do
     ~H"""
-    <div class={["grid grid-cols-3 gap-4", @class]}>
+    <div class={["grid grid-cols-3 gap-4", @class]} {@rest}>
       <div :for={_ <- 1..3} class="rounded-lg border border-border p-4 space-y-2">
         <div class="flex items-center justify-between">
           <div class="skeleton-pulse rounded h-3.5 w-20" />
@@ -178,7 +179,7 @@ defmodule AyaWeb.UI.Skeleton do
 
   def skeleton(%{type: "form"} = assigns) do
     ~H"""
-    <div class={["space-y-5", @class]}>
+    <div class={["space-y-5", @class]} {@rest}>
       <div :for={_ <- 1..@rows} class="space-y-1.5">
         <div class="skeleton-pulse rounded h-3.5 w-20" />
         <div class="skeleton-pulse rounded-md h-10 w-full" />
@@ -193,7 +194,7 @@ defmodule AyaWeb.UI.Skeleton do
 
   def skeleton(%{type: "list"} = assigns) do
     ~H"""
-    <div class={["space-y-1", @class]}>
+    <div class={["space-y-1", @class]} {@rest}>
       <div :for={_ <- 1..@rows} class="flex items-center gap-3 px-3 py-2.5 rounded-lg">
         <div class="skeleton-pulse rounded-md size-8 shrink-0" />
         <div class="flex-1 space-y-1.5">

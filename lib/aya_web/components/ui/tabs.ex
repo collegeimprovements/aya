@@ -79,9 +79,10 @@ defmodule AyaWeb.UI.Tabs do
             tab.addEventListener("keydown", (e) => {
               const tabs = Array.from(this.el.querySelectorAll("[role=tab]"));
               const index = tabs.indexOf(tab);
+              const rtl = getComputedStyle(this.el).direction === "rtl";
               let next;
-              if (e.key === "ArrowRight") next = tabs[(index + 1) % tabs.length];
-              else if (e.key === "ArrowLeft") next = tabs[(index - 1 + tabs.length) % tabs.length];
+              if (e.key === "ArrowRight") next = tabs[(index + (rtl ? -1 : 1) + tabs.length) % tabs.length];
+              else if (e.key === "ArrowLeft") next = tabs[(index + (rtl ? 1 : -1) + tabs.length) % tabs.length];
               else if (e.key === "Home") next = tabs[0];
               else if (e.key === "End") next = tabs[tabs.length - 1];
               if (next) {
@@ -90,6 +91,20 @@ defmodule AyaWeb.UI.Tabs do
                 this.activate(next);
               }
             });
+          });
+        },
+
+        updated() {
+          const tabs = this.el.querySelectorAll("[role=tab]");
+          tabs.forEach(tab => {
+            const isActive = tab.getAttribute("aria-selected") === "true";
+            tab.classList.toggle("tab--active", isActive);
+            tab.setAttribute("tabindex", isActive ? "0" : "-1");
+            const panelId = tab.dataset.panel;
+            if (panelId) {
+              const panel = document.getElementById(panelId);
+              if (panel) panel.hidden = !isActive;
+            }
           });
         },
 
@@ -278,6 +293,7 @@ defmodule AyaWeb.UI.Tabs do
           this.tabs = Array.from(this.el.querySelectorAll("[role=tab]"))
           this.activeIndex = Math.max(0, this.tabs.findIndex(t => t.getAttribute("aria-selected") === "true"))
           this.busy = false
+          this.reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
           // Position indicator instantly, then enable transitions
           this.moveIndicator(this.tabs[this.activeIndex], false)
@@ -290,9 +306,10 @@ defmodule AyaWeb.UI.Tabs do
             tab.addEventListener("click", () => this.activate(i))
             tab.addEventListener("keydown", (e) => {
               const len = this.tabs.length
+              const rtl = getComputedStyle(this.el).direction === "rtl"
               let next
-              if (e.key === "ArrowRight") next = (i + 1) % len
-              else if (e.key === "ArrowLeft") next = (i - 1 + len) % len
+              if (e.key === "ArrowRight") next = (i + (rtl ? -1 : 1) + len) % len
+              else if (e.key === "ArrowLeft") next = (i + (rtl ? 1 : -1) + len) % len
               else if (e.key === "Home") next = 0
               else if (e.key === "End") next = len - 1
               if (next != null) { e.preventDefault(); this.tabs[next].focus(); this.activate(next) }
@@ -351,7 +368,7 @@ defmodule AyaWeb.UI.Tabs do
             const exit = oldPanel.animate([
               { opacity: 1, transform: "translateX(0)", filter: "blur(0px)" },
               { opacity: 0, transform: `translateX(${dir * -30}px)`, filter: "blur(3px)" }
-            ], { duration: 120, easing: "ease-in", fill: "forwards" })
+            ], { duration: this.reduceMotion ? 0 : 120, easing: "ease-in", fill: "forwards" })
             await exit.finished
             oldPanel.hidden = true
             exit.cancel()
@@ -361,7 +378,7 @@ defmodule AyaWeb.UI.Tabs do
             const enter = newPanel.animate([
               { opacity: 0, transform: `translateX(${dir * 30}px)`, filter: "blur(3px)" },
               { opacity: 1, transform: "translateX(0)", filter: "blur(0px)" }
-            ], { duration: 200, easing: "cubic-bezier(0.25, 1, 0.5, 1)", fill: "forwards" })
+            ], { duration: this.reduceMotion ? 0 : 200, easing: "cubic-bezier(0.25, 1, 0.5, 1)", fill: "forwards" })
             await enter.finished
             enter.cancel()
           }

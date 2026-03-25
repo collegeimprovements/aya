@@ -443,7 +443,7 @@ defmodule AyaWeb.CoreComponents do
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
-      class="fixed top-4 right-4 z-50 flash-enter"
+      class="fixed top-4 right-4 z-toast flash-enter"
       data-auto-dismiss={@kind == :info && "5000"}
       {@rest}
     >

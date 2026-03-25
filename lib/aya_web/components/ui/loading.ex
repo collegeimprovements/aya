@@ -26,6 +26,7 @@ defmodule AyaWeb.UI.Loading do
   attr :size, :string, default: "md", values: ~w(sm md lg)
   attr :speed, :string, default: nil, doc: "animation duration override, e.g. \"0.8s\" or \"3s\""
   attr :class, :any, default: nil
+  attr :rest, :global
 
   def loading(%{type: "shimmer"} = assigns) do
     ~H"""
@@ -33,6 +34,7 @@ defmodule AyaWeb.UI.Loading do
       class={["inline-flex items-center gap-2", size_class(@size), @class]}
       role="status"
       aria-label={@text}
+      {@rest}
     >
       <span class="loading-shimmer" style={@speed && "animation-duration: #{@speed}"}>{@text}</span>
     </div>
@@ -45,6 +47,7 @@ defmodule AyaWeb.UI.Loading do
       class={["inline-flex items-center gap-2", size_class(@size), @class]}
       role="status"
       aria-label={@text}
+      {@rest}
     >
       <span class="loading-shimmer-slide" style={@speed && "animation-duration: #{@speed}"}>
         {@text}
@@ -55,7 +58,7 @@ defmodule AyaWeb.UI.Loading do
 
   def loading(%{type: "dots"} = assigns) do
     ~H"""
-    <div class={["inline-flex items-center gap-1.5", @class]} role="status" aria-label={@text}>
+    <div class={["inline-flex items-center gap-1.5", @class]} role="status" aria-label={@text} {@rest}>
       <span class="sr-only">{@text}</span>
       <span
         :for={i <- 1..3}
@@ -72,6 +75,7 @@ defmodule AyaWeb.UI.Loading do
       class={["inline-flex items-center gap-2", size_class(@size), @class]}
       role="status"
       aria-label={@text}
+      {@rest}
     >
       <span class="loading-pulse">{@text}</span>
     </div>
@@ -80,7 +84,7 @@ defmodule AyaWeb.UI.Loading do
 
   def loading(%{type: "bar"} = assigns) do
     ~H"""
-    <div class={["w-full", @class]} role="status" aria-label={@text}>
+    <div class={["w-full", @class]} role="status" aria-label={@text} {@rest}>
       <span class="sr-only">{@text}</span>
       <div class={["loading-bar", bar_height(@size)]} />
     </div>
@@ -93,6 +97,7 @@ defmodule AyaWeb.UI.Loading do
       class={["inline-flex items-center gap-1 px-4 py-2.5 rounded-2xl bg-surface-alt", @class]}
       role="status"
       aria-label={@text}
+      {@rest}
     >
       <span class="sr-only">{@text}</span>
       <span :for={i <- 1..3} class="loading-typing-dot" style={"animation-delay: #{(i - 1) * 200}ms"} />

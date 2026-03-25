@@ -22,9 +22,11 @@ defmodule AyaWeb.UI.InlineAlert do
     default: :info,
     values: [:info, :success, :warning, :error]
 
+  attr :icon, :string, default: nil, doc: "override the type's default icon"
   attr :dismissible, :boolean, default: false
   attr :class, :any, default: nil
   attr :id, :string, default: nil
+  attr :rest, :global
 
   slot :inner_block, required: true
 
@@ -38,8 +40,9 @@ defmodule AyaWeb.UI.InlineAlert do
         alert_style(@type),
         @class
       ]}
+      {@rest}
     >
-      <.icon name={alert_icon(@type)} class="size-5 shrink-0 mt-0.5" />
+      <.icon name={@icon || alert_icon(@type)} class="size-5 shrink-0 mt-0.5" />
       <div class="flex-1 min-w-0">
         {render_slot(@inner_block)}
       </div>

@@ -92,7 +92,7 @@ defmodule AyaWeb.UI.Accordion do
             <.icon
               :if={@chevron}
               name="hero-chevron-down-mini"
-              class="size-5 text-text-muted transition-transform duration-normal group-open:rotate-180"
+              class="size-5 text-text-muted transition-transform duration-normal group-open:rotate-180 rtl:rotate-180 rtl:group-open:rotate-0"
             />
           </span>
         </summary>

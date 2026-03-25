@@ -75,7 +75,7 @@ defmodule AyaWeb.UI.ColorPicker do
       <div
         data-cp-panel
         style={"position-anchor: --cp-#{@id}"}
-        class="fixed z-50 mt-1 p-3 rounded-lg border border-border bg-surface shadow-lg w-64 hidden [top:anchor(bottom)] [left:anchor(start)] [position-try-fallbacks:flip-block]"
+        class="fixed z-dropdown mt-1 p-3 rounded-lg border border-border bg-surface shadow-lg w-64 hidden [top:anchor(bottom)] [left:anchor(start)] [position-try-fallbacks:flip-block]"
       >
         <%!-- Swatch grid --%>
         <div class="grid grid-cols-8 gap-1.5 mb-3">
@@ -196,14 +196,21 @@ defmodule AyaWeb.UI.ColorPicker do
             }
 
             // Click outside to close
-            document.addEventListener("click", (e) => {
+            this._onDocClick = (e) => {
               if (open && !el.contains(e.target)) close()
-            })
+            }
+            document.addEventListener("click", this._onDocClick)
 
             // Escape to close
-            document.addEventListener("keydown", (e) => {
+            this._onDocKeydown = (e) => {
               if (e.key === "Escape" && open) close()
-            })
+            }
+            document.addEventListener("keydown", this._onDocKeydown)
+          },
+
+          destroyed() {
+            document.removeEventListener("click", this._onDocClick)
+            document.removeEventListener("keydown", this._onDocKeydown)
           }
         }
       </script>

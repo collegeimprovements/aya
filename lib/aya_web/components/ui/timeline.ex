@@ -37,6 +37,7 @@ defmodule AyaWeb.UI.Timeline do
   attr :variant, :string, default: "default", values: ~w(default compact card)
   attr :direction, :string, default: "vertical", values: ~w(vertical horizontal)
   attr :class, :any, default: nil
+  attr :rest, :global
 
   slot :item, required: true do
     attr :title, :string, required: true
@@ -49,7 +50,7 @@ defmodule AyaWeb.UI.Timeline do
 
   def timeline(%{direction: "horizontal"} = assigns) do
     ~H"""
-    <div class={["overflow-x-auto", @class]}>
+    <div class={["overflow-x-auto", @class]} {@rest}>
       <div class="flex items-start min-w-max">
         <div
           :for={{item, index} <- Enum.with_index(@item)}
@@ -106,7 +107,7 @@ defmodule AyaWeb.UI.Timeline do
 
   def timeline(assigns) do
     ~H"""
-    <div class={["relative", @class]}>
+    <div class={["relative", @class]} {@rest}>
       <div :for={{item, index} <- Enum.with_index(@item)} class="flex gap-3">
         <%!-- Icon column with connector line --%>
         <div class="flex flex-col items-center">

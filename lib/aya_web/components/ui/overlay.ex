@@ -117,6 +117,7 @@ defmodule AyaWeb.UI.Overlay do
           const closedby = dialog.dataset.closedby || "any"
           const useDepth = dialog.dataset.depth === "true"
           const depthEase = "cubic-bezier(0.32, 0.72, 0, 1)"
+          const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
           // Depth-effect: scale the page content when sheet opens (iOS-style).
           // <dialog showModal()> renders in the top layer, so parent transforms don't affect it.
@@ -126,7 +127,7 @@ defmodule AyaWeb.UI.Overlay do
 
           function applyDepth(on) {
             if (!depthTarget) return
-            const dur = "400ms"
+            const dur = reduceMotion ? "0ms" : "400ms"
             if (on) {
               depthTarget.style.transition = `transform ${dur} ${depthEase}, border-radius ${dur} ${depthEase}`
               depthTarget.style.transformOrigin = "top center"
@@ -157,12 +158,12 @@ defmodule AyaWeb.UI.Overlay do
               applyDepth(false)
               // Fade backdrop
               if (backdrop) {
-                backdrop.style.transition = `opacity 350ms ease-out`
+                backdrop.style.transition = reduceMotion ? "none" : `opacity 350ms ease-out`
                 backdrop.style.opacity = "0"
               }
               // Slide surface down
               if (surface) {
-                surface.style.transition = `transform 400ms ${depthEase}, opacity 300ms ease-out`
+                surface.style.transition = reduceMotion ? "none" : `transform 400ms ${depthEase}, opacity 300ms ease-out`
                 surface.style.transform = "translateY(100%)"
                 surface.style.opacity = "0"
               }
@@ -172,7 +173,7 @@ defmodule AyaWeb.UI.Overlay do
                 if (backdrop) { backdrop.style.transition = ""; backdrop.style.opacity = "" }
                 if (surface) { surface.style.transition = ""; surface.style.transform = ""; surface.style.opacity = "" }
                 closing = false
-              }, 420)
+              }, reduceMotion ? 0 : 420)
             } else {
               dialog.close()
             }
@@ -270,20 +271,20 @@ defmodule AyaWeb.UI.Overlay do
             if (isV && (variant === "bottom_sheet" || variant === "page_sheet")) {
               const containerDim = window.innerHeight
               const translateY = containerDim - targetHeight
-              surface.style.transition = "transform 500ms cubic-bezier(0.32, 0.72, 0, 1), height 500ms cubic-bezier(0.32, 0.72, 0, 1)"
+              surface.style.transition = reduceMotion ? "none" : "transform 500ms cubic-bezier(0.32, 0.72, 0, 1), height 500ms cubic-bezier(0.32, 0.72, 0, 1)"
               surface.style.transform = `translateY(${translateY}px)`
               surface.style.height = `${targetHeight}px`
               // Fade backdrop: fully visible at last snap, faded at first
               if (backdrop) {
                 const progress = activeSnap / (offsets.length - 1)
-                backdrop.style.transition = "opacity 500ms cubic-bezier(0.32, 0.72, 0, 1)"
+                backdrop.style.transition = reduceMotion ? "none" : "opacity 500ms cubic-bezier(0.32, 0.72, 0, 1)"
                 backdrop.style.opacity = String(progress)
               }
               // Reset transition after animation
               setTimeout(() => {
                 if (surface) surface.style.transition = ""
                 if (backdrop) backdrop.style.transition = ""
-              }, 520)
+              }, reduceMotion ? 0 : 520)
             }
           }
 

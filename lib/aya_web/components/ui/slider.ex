@@ -266,12 +266,15 @@ defmodule AyaWeb.UI.Slider do
               onMove(e)
             }
 
+            this._thumbHandlers = []
             thumbs.forEach((thumb, i) => {
-              thumb.addEventListener("pointerdown", startDrag(i))
+              const handler = startDrag(i)
+              this._thumbHandlers.push({ thumb, handler })
+              thumb.addEventListener("pointerdown", handler)
             })
 
             // Click on track to jump
-            track.addEventListener("pointerdown", (e) => {
+            this._trackHandler = (e) => {
               if (e.target.closest("[data-slider-thumb]")) return
               const rect = track.getBoundingClientRect()
               const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
@@ -288,11 +291,13 @@ defmodule AyaWeb.UI.Slider do
               }
               update()
               inputs[0].dispatchEvent(new Event("input", { bubbles: true }))
-            })
+            }
+            track.addEventListener("pointerdown", this._trackHandler)
 
             // Keyboard
+            this._keyHandlers = []
             thumbs.forEach((thumb, i) => {
-              thumb.addEventListener("keydown", (e) => {
+              const keyHandler = (e) => {
                 if (el.classList.contains("slider--disabled")) return
                 let v = isRange ? values[i] : values[0]
                 const bigStep = step * 10
@@ -318,10 +323,29 @@ defmodule AyaWeb.UI.Slider do
                 }
                 update()
                 inputs[0].dispatchEvent(new Event("input", { bubbles: true }))
-              })
+              }
+              this._keyHandlers.push({ thumb, keyHandler })
+              thumb.addEventListener("keydown", keyHandler)
             })
 
             update()
+          },
+
+          destroyed() {
+            const track = this.el.querySelector("[data-slider-track]")
+            if (this._trackHandler && track) {
+              track.removeEventListener("pointerdown", this._trackHandler)
+            }
+            if (this._thumbHandlers) {
+              this._thumbHandlers.forEach(({ thumb, handler }) => {
+                thumb.removeEventListener("pointerdown", handler)
+              })
+            }
+            if (this._keyHandlers) {
+              this._keyHandlers.forEach(({ thumb, keyHandler }) => {
+                thumb.removeEventListener("keydown", keyHandler)
+              })
+            }
           }
         }
       </script>

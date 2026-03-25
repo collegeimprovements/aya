@@ -19,18 +19,22 @@ defmodule AyaWeb.UI.Badge do
 
   attr :size, :string, default: "sm", values: ~w(sm md lg)
   attr :class, :any, default: nil
+  attr :rest, :global
 
   slot :inner_block, required: true
 
   def badge(assigns) do
     ~H"""
-    <span class={[
-      "inline-flex items-center font-medium rounded-full",
-      badge_size(@size),
-      badge_variant(@variant),
-      @class
-    ]}>
-      {render_slot(@inner_block)}
+    <span
+      class={[
+        "inline-flex items-center font-medium rounded-full max-w-full",
+        badge_size(@size),
+        badge_variant(@variant),
+        @class
+      ]}
+      {@rest}
+    >
+      <span class="truncate">{render_slot(@inner_block)}</span>
     </span>
     """
   end

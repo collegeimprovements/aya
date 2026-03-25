@@ -51,14 +51,14 @@ defmodule AyaWeb.UI.FamilyDialog do
       </ul>
 
       <%!-- Expanded dialog (hidden, populated by JS) --%>
-      <dialog data-fd-dialog class="fd__dialog">
+      <dialog data-fd-dialog class="fd__dialog" aria-labelledby={"#{@id}-title"}>
         <div data-fd-backdrop class="fd__backdrop" />
         <div data-fd-card class="fd__card">
           <%!-- Header with image + title (populated by JS from the clicked item) --%>
           <div class="fd__card-header">
             <div data-fd-card-avatar class="fd__card-avatar"></div>
             <div>
-              <h3 data-fd-card-title class="fd__card-title"></h3>
+              <h3 data-fd-card-title id={"#{@id}-title"} class="fd__card-title"></h3>
               <p data-fd-card-subtitle class="fd__card-subtitle"></p>
             </div>
             <button type="button" data-fd-close class="fd__card-close" aria-label="Close">

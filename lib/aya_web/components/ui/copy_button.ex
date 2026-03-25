@@ -18,6 +18,8 @@ defmodule AyaWeb.UI.CopyButton do
   """
   attr :content, :string, required: true, doc: "the text to copy"
   attr :label, :string, default: "Copy"
+  attr :icon, :string, default: "hero-clipboard-document", doc: "default state icon"
+  attr :copied_icon, :string, default: "hero-check", doc: "icon shown after copy succeeds"
   attr :id, :string, required: true
   attr :class, :any, default: nil
 
@@ -36,10 +38,10 @@ defmodule AyaWeb.UI.CopyButton do
         data-role="copy-trigger"
       >
         <span data-role="icon-default">
-          <.icon name="hero-clipboard-document" class="size-3.5" />
+          <.icon name={@icon} class="size-3.5" />
         </span>
         <span data-role="icon-success" class="hidden text-success">
-          <.icon name="hero-check" class="size-3.5" />
+          <.icon name={@copied_icon} class="size-3.5" />
         </span>
         <span data-role="copy-label">{@label}</span>
       </button>

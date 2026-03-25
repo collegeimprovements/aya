@@ -8,6 +8,7 @@ defmodule AyaWeb.Router do
     plug :put_root_layout, html: {AyaWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug AyaWeb.Plugs.BrowserContext
   end
 
   pipeline :api do

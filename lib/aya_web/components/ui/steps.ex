@@ -22,6 +22,7 @@ defmodule AyaWeb.UI.Steps do
 
   attr :orientation, :string, default: "horizontal", values: ~w(horizontal vertical)
   attr :class, :any, default: nil
+  attr :rest, :global
 
   slot :step, required: true do
     attr :label, :string, required: true
@@ -31,7 +32,7 @@ defmodule AyaWeb.UI.Steps do
 
   def steps(%{orientation: "vertical"} = assigns) do
     ~H"""
-    <ol class={["flex flex-col", @class]}>
+    <ol class={["flex flex-col", @class]} {@rest}>
       <li :for={{step, index} <- Enum.with_index(@step)} class="flex gap-3">
         <div class="flex flex-col items-center">
           <.step_circle status={step[:status] || :upcoming} number={index + 1} />
@@ -58,7 +59,7 @@ defmodule AyaWeb.UI.Steps do
 
   def steps(assigns) do
     ~H"""
-    <ol class={["flex items-start", @class]}>
+    <ol class={["flex items-start", @class]} {@rest}>
       <li
         :for={{step, index} <- Enum.with_index(@step)}
         class="flex items-center flex-1 last:flex-none"

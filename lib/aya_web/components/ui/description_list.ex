@@ -36,6 +36,7 @@ defmodule AyaWeb.UI.DescriptionList do
   attr :dividers, :boolean, default: true
   attr :columns, :integer, default: 1, doc: "grid columns for 'grid' variant (1-3)"
   attr :class, :any, default: nil
+  attr :rest, :global
 
   slot :item, required: true do
     attr :label, :string, required: true
@@ -45,7 +46,7 @@ defmodule AyaWeb.UI.DescriptionList do
 
   def description_list(assigns) do
     ~H"""
-    <dl class={[dl_classes(@variant, @columns), @class]}>
+    <dl class={[dl_classes(@variant, @columns), @class]} {@rest}>
       <div
         :for={{item, index} <- Enum.with_index(@item)}
         class={item_classes(@variant, @dividers, index, length(@item), item[:span])}

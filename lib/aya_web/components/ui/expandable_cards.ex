@@ -78,6 +78,7 @@ defmodule AyaWeb.UI.ExpandableCards do
           this.overlay = this.el.querySelector("[data-overlay]")
           this.expanded = null
           this.busy = false
+          this.reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
           this.el.querySelectorAll("[data-card]").forEach(card => {
             card.addEventListener("click", (e) => {
@@ -144,7 +145,7 @@ defmodule AyaWeb.UI.ExpandableCards do
 
         // View Transitions API wrapper with instant fallback
         morph(name, el, apply, done) {
-          if (!document.startViewTransition) {
+          if (!document.startViewTransition || this.reduceMotion) {
             apply()
             done()
             return
